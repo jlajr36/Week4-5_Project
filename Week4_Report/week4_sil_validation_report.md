@@ -7,8 +7,9 @@
 
 The Phase 1 Software-in-the-Loop (SIL) simulation establishes two-way communication between a Python control signal publisher, a SysML Model representing the System of Interest (SoI), and a Python receiving subscriber. Facilitated by the public broker `test.mosquitto.org:1883`, the SysML SoI subscribes to 20-byte payloads (five Float32 joint angles) on topic `validatecontrolsignals/roboticarm`, validates angles against tolerance bands, and publishes approved signals on topic `transmitcontrolsignals/roboticarm`.
 
-![Figure 1: Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL](robot_act_model.png)
-*Figure 1: Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL (`robot_act_model.png`)*
+![Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL](robot_act_model.png)
+<br>
+*Figure 1: Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL*
 
 ---
 
@@ -24,12 +25,13 @@ To ensure physical joint safety, an Opaque Action evaluates received control sig
 | **Joint Angle 4 ($v_4$)** | $3.0 \le v_4 \le 4.0$ | `gestureAngle4 >= 3 && gestureAngle4 <= 4` |
 | **Joint Angle 5 ($v_5$)** | $4.0 \le v_5 \le 5.0$ | `gestureAngle5 >= 4 && gestureAngle5 <= 5` |
 
-![Figure 2: Task 2 Validation Guard Logic Detail & Decision Node Branching](zoomed_on_val.png)
-*Figure 2: Task 2 Validation Guard Logic Detail & Decision Node Branching (`zoomed_on_val.png`)*
-
 ### Decision Node Branching Execution:
 * **`[valid == true]`**: Control proceeds to `MQTTPublishMessage`, sending the 20-byte payload to the subscriber on `transmitcontrolsignals/roboticarm`.
 * **`[valid == false]`**: Control bypasses `MQTTPublishMessage`, executing `MQTTCloseConnection` and looping to the Merge Node to fetch new signals.
+
+![Task 2 Validation Guard Logic Detail & Decision Node Branching](zoomed_on_val.png)
+<br>
+*Figure 2: Task 2 Validation Guard Logic Detail & Decision Node Branching*
 
 ---
 
@@ -37,11 +39,12 @@ To ensure physical joint safety, an Opaque Action evaluates received control sig
 
 Software-in-the-Loop execution was confirmed by matching SysML model console logs with Python subscriber output. The generated values satisfied all joint bounds, triggering signal dispatch and bit-for-bit reception.
 
-| SysML Console Produced Values (`producted_values.png`) | Python Subscriber Received Values (`rec_values.png`) |
+| SysML Console Produced Values | Python Subscriber Received Values |
 | :---: | :---: |
 | ![SysML Console Output](producted_values.png) | ![Python Subscriber Output](rec_values.png) |
 
-*Figure 3 & 4: Side-by-Side Console Output — SysML Produced Array (`producted_values.png`) vs. Python Received Array (`rec_values.png`)*
+<br>
+*Figure 3 & 4: Side-by-Side Console Output — SysML Produced Array vs. Python Received Array*
 
 ### Verification Results Table
 
