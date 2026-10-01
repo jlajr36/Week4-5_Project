@@ -7,7 +7,7 @@
 
 The Phase 1 Software-in-the-Loop (SIL) simulation establishes two-way communication between a Python control signal publisher, a SysML Model representing the System of Interest (SoI), and a Python receiving subscriber. Facilitated by the public broker `test.mosquitto.org:1883`, the SysML SoI subscribes to 20-byte payloads (five Float32 joint angles) on topic `validatecontrolsignals/roboticarm`, validates angles against tolerance bands, and publishes approved signals on topic `transmitcontrolsignals/roboticarm`.
 
-![Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL](robot_act_model.png)
+<img src="robot_act_model.png" alt="Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL" width="400">
 <br>
 *Figure 1: Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL*
 
@@ -29,7 +29,7 @@ To ensure physical joint safety, an Opaque Action evaluates received control sig
 * **`[valid == true]`**: Control proceeds to `MQTTPublishMessage`, sending the 20-byte payload to the subscriber on `transmitcontrolsignals/roboticarm`.
 * **`[valid == false]`**: Control bypasses `MQTTPublishMessage`, executing `MQTTCloseConnection` and looping to the Merge Node to fetch new signals.
 
-![Task 2 Validation Guard Logic Detail & Decision Node Branching](zoomed_on_val.png)
+<img src="zoomed_on_val.png" alt="Task 2 Validation Guard Logic Detail & Decision Node Branching" width="400">
 <br>
 *Figure 2: Task 2 Validation Guard Logic Detail & Decision Node Branching*
 
