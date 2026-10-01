@@ -1,0 +1,18 @@
+Runtime.getRuntime().exec("C:/ProgramData/anaconda3/python.exe C:/Users/horiz/Desktop/projects/UML/EECE5496/Week4-5/python_publish.py");
+
+Runtime.getRuntime().exec("C:/ProgramData/anaconda3/python.exe C:/Users/horiz/Desktop/projects/UML/EECE5496/Week4-5/python_subscribe.py");
+
+String[] cmd = [
+    "cmd.exe", "/c", "start", "cmd", "/k",
+    "C:/ProgramData/anaconda3/python.exe",
+    "C:/Users/horiz/Desktop/projects/UML/EECE5496/Week4-5/Week4-5_Project/python_publish.py"
+];
+Runtime.getRuntime().exec(cmd);
+
+
+String[] cmd = [
+    "cmd.exe", "/c", "start", "cmd", "/k",
+    "C:/ProgramData/anaconda3/python.exe",
+    "C:/Users/horiz/Desktop/projects/UML/EECE5496/Week4-5/Week4-5_Project/python_subscribe.py"
+];
+Runtime.getRuntime().exec(cmd);
