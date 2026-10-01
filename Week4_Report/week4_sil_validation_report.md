@@ -7,9 +7,10 @@
 
 The Phase 1 Software-in-the-Loop (SIL) simulation establishes two-way communication between a Python control signal publisher, a SysML Model representing the System of Interest (SoI), and a Python receiving subscriber. Facilitated by the public broker `test.mosquitto.org:1883`, the SysML SoI subscribes to 20-byte payloads (five Float32 joint angles) on topic `validatecontrolsignals/roboticarm`, validates angles against tolerance bands, and publishes approved signals on topic `transmitcontrolsignals/roboticarm`.
 
-<img src="robot_act_model.png" alt="Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL" width="400">
-<br>
-*Figure 1: Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL*
+<p align="center">
+  <img src="robot_act_model.png" alt="Task 1 Base SysML Activity Diagram" width="340"><br>
+  <em>Figure 1: Task 1 Base SysML Activity Diagram Workflow for Gesture Control SIL</em>
+</p>
 
 ---
 
@@ -29,9 +30,12 @@ To ensure physical joint safety, an Opaque Action evaluates received control sig
 * **`[valid == true]`**: Control proceeds to `MQTTPublishMessage`, sending the 20-byte payload to the subscriber on `transmitcontrolsignals/roboticarm`.
 * **`[valid == false]`**: Control bypasses `MQTTPublishMessage`, executing `MQTTCloseConnection` and looping to the Merge Node to fetch new signals.
 
-<img src="zoomed_on_val.png" alt="Task 2 Validation Guard Logic Detail & Decision Node Branching" width="400">
-<br>
-*Figure 2: Task 2 Validation Guard Logic Detail & Decision Node Branching*
+<p align="center">
+  <img src="zoomed_on_val.png" alt="Task 2 Validation Guard Logic Detail" width="340"><br>
+  <em>Figure 2: Task 2 Validation Guard Logic Detail & Decision Node Branching</em>
+</p>
+
+<div style="page-break-after: always; break-after: page;"></div>
 
 ---
 
@@ -39,12 +43,17 @@ To ensure physical joint safety, an Opaque Action evaluates received control sig
 
 Software-in-the-Loop execution was confirmed by matching SysML model console logs with Python subscriber output. The generated values satisfied all joint bounds, triggering signal dispatch and bit-for-bit reception.
 
-| SysML Console Produced Values | Python Subscriber Received Values |
-| :---: | :---: |
-| ![SysML Console Output](producted_values.png) | ![Python Subscriber Output](rec_values.png) |
+<div align="center">
+  <table border="0" style="border: none;">
+    <tr>
+      <td align="center" style="border: none;"><img src="producted_values.png" width="210" alt="SysML Console Output"></td>
+      <td align="center" style="border: none;"><img src="rec_values.png" width="210" alt="Python Subscriber Output"></td>
+    </tr>
+  </table>
+  <em>Figure 3 & 4: Side-by-Side Console Output — SysML Produced Array vs. Python Received Array</em>
+</div>
 
 <br>
-*Figure 3 & 4: Side-by-Side Console Output — SysML Produced Array vs. Python Received Array*
 
 ### Verification Results Table
 
