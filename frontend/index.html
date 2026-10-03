@@ -214,9 +214,9 @@
 
 <div class="topic-row">
   <label for="topic_input">MQTT Topic:</label>
-  <input id="topic_input" type="text" value="transmitcontrolsignals/roboticarm/orange_bird" spellcheck="false">
+  <input id="topic_input" type="text" value="validatecontrolsignals/roboticarm/orange_bird" spellcheck="false">
   <button id="apply_topic_btn">Apply Topic</button>
-  <span id="topic_current">Publishing to: transmitcontrolsignals/roboticarm/orange_bird</span>
+  <span id="topic_current">Publishing to: validatecontrolsignals/roboticarm/orange_bird</span>
 </div>
 
 <!-- Manual 5-float publish -->
@@ -241,7 +241,7 @@ const CENTER = [SCREEN_W / 2, SCREEN_H - 50];
 const RADIUS = 250;
 
 const MQTT_BROKER_WS = "wss://test.mosquitto.org:8081/mqtt";
-const DEFAULT_MQTT_TOPIC = "transmitcontrolsignals/roboticarm/orange_bird";
+const DEFAULT_MQTT_TOPIC = "validatecontrolsignals/roboticarm/orange_bird";
 let mqttTopic = DEFAULT_MQTT_TOPIC; // now user-configurable at runtime
 const PUBLISH_INTERVAL_MS = 1000;
 

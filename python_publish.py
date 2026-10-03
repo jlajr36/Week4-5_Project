@@ -20,7 +20,7 @@ import paho.mqtt.client as mqtt
 
 BROKER = "test.mosquitto.org"
 PORT = 1883
-SEND_TOPIC = "transmitcontrolsignals/roboticarm/orange_bird"
+SEND_TOPIC = "validatecontrolsignals/roboticarm/orange_bird"
 SEND_INTERVAL = 1.0
 
 # ============================================================
