@@ -11,7 +11,7 @@ import paho.mqtt.client as mqtt
 BROKER = "test.mosquitto.org"
 PORT = 1883
 
-SUBSCRIBE_TOPIC = "validatecontrolsignals/roboticarm/orange_bird"
+SUBSCRIBE_TOPIC = "transmitcontrolsignals/roboticarm/orange_bird"
 
 
 # ============================================================
