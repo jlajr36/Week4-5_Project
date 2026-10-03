@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gesture Arc + MQTT</title>
+<style>
+  body {
+    margin: 0;
+    background: #111;
+    color: #eee;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  p.sub { color: #aaa; margin-top: 0; margin-bottom: 16px; text-align: center; max-width: 640px; }
+  .main-layout {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 1500px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .video-wrap {
+    position: relative;
+    flex: 1 1 900px;
+    max-width: 900px;
+    aspect-ratio: 1000 / 500;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+  .console-panel {
+    flex: 1 1 260px;
+    max-width: 500px;
+    min-width: 220px;
+    height: 500px;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .console-header {
+    background: #1a1a1a;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    color: #9f9;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .console-header button {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    background: #333;
+  }
+  .console-header button:hover { background: #444; }
+  .console-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: #6f6;
+    line-height: 1.5;
+  }
+  .console-log .entry { white-space: pre-wrap; word-break: break-all; margin-bottom: 2px; }
+  .console-log .entry .ts { color: #666; }
+  video { display: none; }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .controls { margin-top: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  button {
+    background: #2d7dfa;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  button:hover { background: #1f66d6; }
+  button:disabled { background: #555; cursor: default; }
+  #stop_btn { background: #d9463f; }
+  #stop_btn:hover { background: #b8362f; }
+  #stop_btn:disabled { background: #555; }
+  #status { margin-top: 10px; font-size: 0.85rem; color: #888; text-align: center; }
+  #mqtt_status { font-size: 0.85rem; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .dot.red { background: #ff4444; }
+  .dot.green { background: #44ff44; }
+  .dot.yellow { background: #ffcc44; }
+  code { background: #222; padding: 2px 6px; border-radius: 4px; }
+  .topic-row { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .topic-row label { font-size: 0.85rem; color: #ccc; }
+  .gesture-legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 18px;
+    max-width: 1100px;
+  }
+  .gesture-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 110px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .gesture-card.active {
+    border-color: #2d7dfa;
+    box-shadow: 0 0 12px rgba(45,125,250,0.5);
+    transform: translateY(-2px);
+  }
+  .gesture-card .emoji { font-size: 2rem; line-height: 1.1; }
+  .gesture-card .num {
+    font-size: 0.7rem;
+    color: #888;
+    background: #000;
+    border-radius: 999px;
+    padding: 1px 8px;
+    margin-top: 4px;
+  }
+  .gesture-card .label { font-size: 0.75rem; color: #ccc; margin-top: 4px; text-align: center; }
+  #topic_input {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #1a1a1a;
+    color: #eee;
+    min-width: 220px;
+    font-size: 0.9rem;
+  }
+  #apply_topic_btn { padding: 8px 14px; font-size: 0.85rem; }
+  #topic_current { font-size: 0.8rem; color: #6f9; }
+</style>
+</head>
+<body>
+
+<h1>Gesture Arc + MQTT</h1>
+<p class="sub">
+  Hand-gesture controlled arc, publishing 5 smoothed gesture angles over MQTT
+  (via WebSockets) to <code>test.mosquitto.org</code>. Runs fully client-side using MediaPipe Hands.
+</p>
+
+<div class="gesture-legend" id="gesture_legend">
+  <div class="gesture-card" data-gesture="1">
+    <span class="emoji">👆</span>
+    <span class="num">Gesture 1</span>
+    <span class="label">Point</span>
+  </div>
+  <div class="gesture-card" data-gesture="2">
+    <span class="emoji">✌️</span>
+    <span class="num">Gesture 2</span>
+    <span class="label">Victory</span>
+  </div>
+  <div class="gesture-card" data-gesture="3">
+    <span class="emoji">🤘</span>
+    <span class="num">Gesture 3</span>
+    <span class="label">Spiderman</span>
+  </div>
+  <div class="gesture-card" data-gesture="4">
+    <span class="emoji">🖐️</span>
+    <span class="num">Gesture 4</span>
+    <span class="label">Open Hand</span>
+  </div>
+  <div class="gesture-card" data-gesture="5">
+    <span class="emoji">👍</span>
+    <span class="num">Gesture 5</span>
+    <span class="label">Thumbs Up</span>
+  </div>
+</div>
+
+<div class="main-layout">
+  <div class="video-wrap">
+    <video id="input_video" playsinline></video>
+    <canvas id="output_canvas" width="1000" height="500"></canvas>
+  </div>
+
+  <div class="console-panel">
+    <div class="console-header">
+      <span>MQTT Publish Log</span>
+      <button id="clear_log_btn">Clear</button>
+    </div>
+    <div class="console-log" id="console_log"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="start_btn">Start Camera</button>
+  <button id="stop_btn" disabled>&#9632; Stop Camera</button>
+  <span id="mqtt_status"><span class="dot yellow"></span>MQTT: connecting...</span>
+</div>
+
+<div class="topic-row">
+  <label for="topic_input">MQTT Topic:</label>
+  <input id="topic_input" type="text" value="gayathri/roboticarm" spellcheck="false" />
+  <button id="apply_topic_btn">Apply Topic</button>
+  <span id="topic_current">Publishing to: gayathri/roboticarm</span>
+</div>
+
+<div id="status">Click "Start Camera" and allow webcam access. Use your LEFT hand for gestures.</div>
+
+<!-- MediaPipe Hands (version-pinned for stability) -->
+<script src="./hands.js"></script>
+<!-- MQTT.js (browser build, WebSocket transport) -->
+<script src="./mqtt.min.js"></script>
+
+<script>
+// ------------------ Config --------------------
+const SCREEN_W = 1000, SCREEN_H = 500;
+const CENTER = [SCREEN_W / 2, SCREEN_H - 50];
+const RADIUS = 250;
+
+const MQTT_BROKER_WS = "wss://test.mosquitto.org:8081/mqtt";
+const DEFAULT_MQTT_TOPIC = "gayathri/roboticarm";
+let mqttTopic = DEFAULT_MQTT_TOPIC; // now user-configurable at runtime
+const PUBLISH_INTERVAL_MS = 1000;
+
+const videoElement = document.getElementById('input_video');
+const outputCanvas = document.getElementById('output_canvas');
+const ctx = outputCanvas.getContext('2d');
+const statusEl = document.getElementById('status');
+const startBtn = document.getElementById('start_btn');
+const stopBtn = document.getElementById('stop_btn');
+const mqttStatusEl = document.getElementById('mqtt_status');
+const consoleLogEl = document.getElementById('console_log');
+const clearLogBtn = document.getElementById('clear_log_btn');
+const topicInput = document.getElementById('topic_input');
+const applyTopicBtn = document.getElementById('apply_topic_btn');
+const topicCurrentEl = document.getElementById('topic_current');
+const gestureCards = {};
+document.querySelectorAll('#gesture_legend .gesture-card').forEach((el) => {
+  gestureCards[el.dataset.gesture] = el;
+});
+function setActiveGestureCard(gestureId) {
+  for (const key in gestureCards) {
+    gestureCards[key].classList.toggle('active', Number(key) === gestureId);
+  }
+}
+
+const MAX_LOG_ENTRIES = 200;
+let logEntryCount = 0;
+
+function logPublish(values, byteLength, sent) {
+  const ts = new Date().toLocaleTimeString('en-US', { hour12: false }) +
+    '.' + String(new Date().getMilliseconds()).padStart(3, '0');
+  const line = document.createElement('div');
+  line.className = 'entry';
+  const tag = sent ? '' : ' <span style="color:#f66">[NOT SENT - disconnected]</span>';
+  line.innerHTML = `<span class="ts">[${ts}]</span> [${values.join(', ')}]<br>"${mqttTopic}" (${byteLength} bytes)${tag}`;
+  consoleLogEl.appendChild(line);
+  logEntryCount++;
+
+  // Cap total entries so the panel doesn't grow unbounded
+  while (logEntryCount > MAX_LOG_ENTRIES) {
+    consoleLogEl.removeChild(consoleLogEl.firstChild);
+    logEntryCount--;
+  }
+  consoleLogEl.scrollTop = consoleLogEl.scrollHeight;
+}
+
+function logSystem(message) {
+  const ts = new Date().toLocaleTimeString('en-US', { hour12: false }) +
+    '.' + String(new Date().getMilliseconds()).padStart(3, '0');
+  const line = document.createElement('div');
+  line.className = 'entry';
+  line.innerHTML = `<span class="ts">[${ts}]</span> <span style="color:#9cf">${message}</span>`;
+  consoleLogEl.appendChild(line);
+  logEntryCount++;
+  while (logEntryCount > MAX_LOG_ENTRIES) {
+    consoleLogEl.removeChild(consoleLogEl.firstChild);
+    logEntryCount--;
+  }
+  consoleLogEl.scrollTop = consoleLogEl.scrollHeight;
+}
+
+clearLogBtn.addEventListener('click', () => {
+  consoleLogEl.innerHTML = '';
+  logEntryCount = 0;
+});
+
+// ------------------ Topic input handling --------------------
+function applyTopic() {
+  const val = topicInput.value.trim();
+  if (!val) {
+    topicInput.value = mqttTopic; // revert to last valid topic
+    return;
+  }
+  if (val === mqttTopic) return;
+  mqttTopic = val;
+  topicCurrentEl.textContent = `Publishing to: ${mqttTopic}`;
+  logSystem(`Topic changed to "${mqttTopic}"`);
+}
+
+applyTopicBtn.addEventListener('click', applyTopic);
+topicInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    applyTopic();
+  }
+});
+
+const procCanvas = document.createElement('canvas');
+procCanvas.width = SCREEN_W;
+procCanvas.height = SCREEN_H;
+const procCtx = procCanvas.getContext('2d');
+
+// ------------------ MQTT setup --------------------
+let mqttClient = null;
+let mqttConnected = false;
+
+function setMqttStatus(state, text) {
+  const colors = { connecting: 'yellow', connected: 'green', error: 'red' };
+  mqttStatusEl.innerHTML = `<span class="dot ${colors[state]}"></span>MQTT: ${text}`;
+}
+
+function connectMqtt() {
+  setMqttStatus('connecting', 'connecting...');
+  mqttClient = mqtt.connect(MQTT_BROKER_WS, {
+    clientId: 'gesture-arc-' + Math.random().toString(16).slice(2, 10),
+    keepalive: 60,
+    reconnectPeriod: 5000,
+    connectTimeout: 10000,
+  });
+
+  mqttClient.on('connect', () => {
+    mqttConnected = true;
+    setMqttStatus('connected', `connected to ${MQTT_BROKER_WS}`);
+  });
+  mqttClient.on('reconnect', () => {
+    mqttConnected = false;
+    setMqttStatus('connecting', 'reconnecting...');
+  });
+  mqttClient.on('close', () => {
+    mqttConnected = false;
+    setMqttStatus('connecting', 'disconnected, retrying...');
+  });
+  mqttClient.on('error', (err) => {
+    mqttConnected = false;
+    setMqttStatus('error', 'connection error');
+    console.error('MQTT error:', err);
+  });
+}
+connectMqtt();
+
+function publishFloats5(values) {
+  // Matches Python's struct.pack('<5f', *values): 5 little-endian float32s.
+  const buf = new ArrayBuffer(20);
+  const view = new DataView(buf);
+  for (let i = 0; i < 5; i++) {
+    view.setFloat32(i * 4, values[i], true); // true = little-endian
+  }
+  const payload = new Uint8Array(buf);
+  const sent = mqttConnected && mqttClient;
+  if (sent) {
+    mqttClient.publish(mqttTopic, payload, { qos: 0 });
+  }
+  logPublish(values, payload.byteLength, sent);
+}
+
+// ------------------ Gesture classification --------------------
+function classifyGesture(px, landmarksRaw) {
+  const tip = { thumb: 4, index: 8, middle: 12, ring: 16, pinky: 20 };
+  const base = { index: 5, middle: 9, ring: 13, pinky: 17 };
+
+  const isFingerUp = (tipIdx, baseIdx) => landmarksRaw[tipIdx].y < landmarksRaw[baseIdx].y;
+
+  const fingers = {
+    thumb: landmarksRaw[tip.thumb].x < landmarksRaw[3].x,
+    index: isFingerUp(tip.index, base.index),
+    middle: isFingerUp(tip.middle, base.middle),
+    ring: isFingerUp(tip.ring, base.ring),
+    pinky: isFingerUp(tip.pinky, base.pinky),
+  };
+
+  if (fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) return 1;
+  if (fingers.index && fingers.middle && !fingers.ring) return 2;
+  if (fingers.index && fingers.pinky && !fingers.middle && !fingers.ring) return 3;
+  if (fingers.index && fingers.middle && fingers.ring && fingers.pinky) return 4;
+  if (!fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky) return 5;
+  return 0;
+}
+
+// ------------------ Angle mapping --------------------
+function getAngleFromPosition(x, y) {
+  const dx = x - CENTER[0];
+  const dy = CENTER[1] - y;
+  let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+  if (angle < 0) angle += 360;
+  const mapped = 180 - angle;
+  return Math.max(0, Math.min(180, mapped));
+}
+
+// ------------------ Drawing --------------------
+function drawLandmarksSimple(px, color) {
+  const CONNECTIONS = [
+    [0,1],[1,2],[2,3],[3,4],
+    [0,5],[5,6],[6,7],[7,8],
+    [5,9],[9,10],[10,11],[11,12],
+    [9,13],[13,14],[14,15],[15,16],
+    [13,17],[17,18],[18,19],[19,20],
+    [0,17]
+  ];
+  ctx.strokeStyle = color || '#00FF00';
+  ctx.lineWidth = 2;
+  for (const [a, b] of CONNECTIONS) {
+    ctx.beginPath();
+    ctx.moveTo(px[a][0], px[a][1]);
+    ctx.lineTo(px[b][0], px[b][1]);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#FF0000';
+  for (const [x, y] of px) {
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawHandLabel(px, label) {
+  const wrist = px[0];
+  ctx.fillStyle = label === 'Left' ? '#00FFFF' : '#FFAA00';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText(label, wrist[0] - 20, wrist[1] + 30);
+}
+
+function drawArc(angle, gestureId, gestureAngles) {
+  ctx.strokeStyle = 'rgb(100,255,100)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(CENTER[0], CENTER[1], RADIUS, Math.PI, 2 * Math.PI); // 180deg -> 360deg, same convention as cv2 (y-down)
+  ctx.stroke();
+
+  const angleRad = ((180 - angle) * Math.PI) / 180;
+  const x = CENTER[0] + RADIUS * Math.cos(angleRad);
+  const y = CENTER[1] - RADIUS * Math.sin(angleRad);
+  ctx.fillStyle = '#FF0000';
+  ctx.beginPath();
+  ctx.arc(x, y, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText(`Gesture: ${gestureId} | Angle: ${Math.round(angle)}`, 30, 60);
+
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#FFFF00';
+  for (let i = 1; i <= 5; i++) {
+    ctx.fillText(`${i}: ${Math.round(gestureAngles[i])}`, 30, 90 + i * 26);
+  }
+}
+
+// ------------------ State --------------------
+let gestureAngles = { 1: 90, 2: 90, 3: 90, 4: 90, 5: 90 };
+let gestureHistory = [];
+let stableGesture = 0;
+const GESTURE_STABILITY_FRAMES = 5;
+let lastPublishTime = 0;
+
+// ------------------ MediaPipe Hands --------------------
+const hands = new Hands({
+  locateFile: (file) => `./${file}`,
+});
+hands.setOptions({
+  maxNumHands: 2,
+  modelComplexity: 1,
+  minDetectionConfidence: 0.7,
+  minTrackingConfidence: 0.7,
+});
+
+let latestResults = null;
+hands.onResults((results) => {
+  latestResults = results;
+  everGotResults = true;
+});
+
+// ------------------ Hand-detection pump (paced, non-overlapping) --------------------
+// hands.send() must not be called again before the previous call's results have
+// arrived — calling it every animation frame without waiting floods the WASM
+// model and it silently stops returning results. This loop paces it correctly.
+let handsBusy = false;
+let everGotResults = false;
+
+async function pumpHands() {
+  if (handsBusy) return;
+  handsBusy = true;
+  const watchdog = setTimeout(() => {
+    // If a single send() call hangs (e.g. model assets stalled loading),
+    // force-clear the busy flag so the loop can retry instead of deadlocking forever.
+    console.warn('MediaPipe Hands: send() taking unusually long — forcing retry.');
+    handsBusy = false;
+  }, 4000);
+  try {
+    await hands.send({ image: procCanvas });
+  } catch (err) {
+    console.error('MediaPipe Hands error:', err);
+  } finally {
+    clearTimeout(watchdog);
+    handsBusy = false;
+  }
+}
+
+// ------------------ Run state / stop control --------------------
+let running = false;
+let rafId = null;
+let currentStream = null;
+
+// ------------------ Main render loop --------------------
+function renderFrame() {
+  if (!running) return; // hard stop guard
+
+  // Mirror raw video into processing canvas first (same as cv2.flip before processing)
+  procCtx.save();
+  procCtx.translate(SCREEN_W, 0);
+  procCtx.scale(-1, 1);
+  procCtx.drawImage(videoElement, 0, 0, SCREEN_W, SCREEN_H);
+  procCtx.restore();
+
+  pumpHands(); // fire-and-forget; internally guarded against overlap
+
+  ctx.drawImage(procCanvas, 0, 0, SCREEN_W, SCREEN_H);
+
+  let gestureId = 0;
+  let angle = 90;
+  let handsDetected = 0;
+  let detectedLabels = [];
+
+  if (latestResults && latestResults.multiHandLandmarks && latestResults.multiHandedness) {
+    handsDetected = latestResults.multiHandLandmarks.length;
+
+    for (let i = 0; i < latestResults.multiHandLandmarks.length; i++) {
+      const label = latestResults.multiHandedness[i].label;
+      detectedLabels.push(label);
+
+      const raw = latestResults.multiHandLandmarks[i];
+      const px = raw.map((lm) => [lm.x * SCREEN_W, lm.y * SCREEN_H]);
+
+      // Draw landmarks + label for EVERY detected hand, not just the Left one,
+      // so you can visually confirm detection is working and which hand is which.
+      drawLandmarksSimple(px, label === 'Left' ? '#00FF00' : '#00AAFF');
+      drawHandLabel(px, label);
+
+      if (label !== 'Left') continue; // only the Left hand drives gestures
+
+      let g = classifyGesture(px, raw);
+
+      // --- Gesture stabilization ---
+      gestureHistory.push(g);
+      if (gestureHistory.length > GESTURE_STABILITY_FRAMES) gestureHistory.shift();
+      const counts = {};
+      let mostCommon = gestureHistory[0];
+      let maxCount = 0;
+      for (const v of gestureHistory) {
+        counts[v] = (counts[v] || 0) + 1;
+        if (counts[v] > maxCount) { maxCount = counts[v]; mostCommon = v; }
+      }
+      if (counts[mostCommon] >= Math.floor(GESTURE_STABILITY_FRAMES / 2)) {
+        stableGesture = mostCommon;
+      }
+      gestureId = stableGesture;
+
+      // --- Angle calculation from index fingertip ---
+      const indexTip = px[8];
+      angle = getAngleFromPosition(indexTip[0], indexTip[1]);
+
+      // --- Angle smoothing ---
+      if (gestureAngles.hasOwnProperty(gestureId)) {
+        gestureAngles[gestureId] = 0.8 * gestureAngles[gestureId] + 0.2 * angle;
+      }
+
+      break;
+    }
+  }
+
+  drawArc(angle, gestureId, gestureAngles);
+  setActiveGestureCard(gestureId);
+
+  // --- Debug readout: confirms whether detection is happening at all ---
+  ctx.fillStyle = '#AAAAAA';
+  ctx.font = '14px sans-serif';
+  ctx.fillText(
+    `Hands detected: ${handsDetected}${detectedLabels.length ? ' (' + detectedLabels.join(', ') + ')' : ''}`,
+    30, SCREEN_H - 40
+  );
+
+  if (gestureId === 0) {
+    ctx.fillStyle = '#FF8888';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('No gesture recognized — make sure your LEFT hand is fully in frame and well lit.', 30, SCREEN_H - 20);
+  }
+
+  // --- Publish over MQTT, rate-limited ---
+  const now = performance.now();
+  if (now - lastPublishTime >= PUBLISH_INTERVAL_MS) {
+    const values = [1, 2, 3, 4, 5].map((i) => Math.round(gestureAngles[i] * 100) / 100);
+    publishFloats5(values);
+    lastPublishTime = now;
+  }
+
+  rafId = requestAnimationFrame(renderFrame);
+}
+
+function stopCamera() {
+  if (!running) return;
+  running = false;
+
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  if (currentStream) {
+    currentStream.getTracks().forEach((track) => track.stop());
+    currentStream = null;
+  }
+  videoElement.srcObject = null;
+
+  // Reset gesture/tracking state so a fresh Start begins clean.
+  latestResults = null;
+  everGotResults = false;
+  gestureHistory = [];
+  stableGesture = 0;
+  gestureAngles = { 1: 90, 2: 90, 3: 90, 4: 90, 5: 90 };
+
+  setActiveGestureCard(0);
+
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+  statusEl.style.color = '';
+  statusEl.textContent = 'Camera stopped. Click "Start Camera" to resume.';
+  logSystem('Camera stopped by user.');
+}
+
+// ------------------ Camera bootstrap --------------------
+startBtn.addEventListener('click', async () => {
+  startBtn.disabled = true;
+  statusEl.textContent = 'Requesting camera access...';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 1280, height: 720 },
+      audio: false,
+    });
+    currentStream = stream;
+    videoElement.srcObject = stream;
+    await videoElement.play();
+    statusEl.style.color = '';
+    statusEl.textContent = 'Running — use your LEFT hand for gestures.';
+    running = true;
+    stopBtn.disabled = false;
+    rafId = requestAnimationFrame(renderFrame);
+
+    setTimeout(() => {
+      if (running && !everGotResults) {
+        statusEl.innerHTML =
+          'No hand-tracking results received after 6s. This usually means the ' +
+          'MediaPipe model files failed to load. Open your browser console (F12) and check for ' +
+          'red errors — common causes: an ad-blocker/firewall blocking cdn.jsdelivr.net, no internet ' +
+          'access to the CDN, or the page not served over HTTPS/localhost.';
+        statusEl.style.color = '#ff8888';
+      }
+    }, 6000);
+  } catch (err) {
+    statusEl.textContent = 'Camera access failed: ' + err.message;
+    startBtn.disabled = false;
+  }
+});
+
+stopBtn.addEventListener('click', stopCamera);
+</script>
+
+</body>
+</html>
