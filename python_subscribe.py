@@ -18,7 +18,7 @@ import paho.mqtt.client as mqtt
 
 BROKER = "test.mosquitto.org"
 PORT = 1883
-RECEIVE_TOPIC = "transmitcontrolsignals/roboticarm"
+RECEIVE_TOPIC = "transmitcontrolsignals/roboticarm/orange_bird"
 
 EXPECTED_BYTES = 20  # 5 x float32
 
