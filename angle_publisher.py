@@ -11,8 +11,6 @@ BROKER = "test.mosquitto.org"
 PORT = 1883
 SEND_TOPIC = "validatecontrolsignals/roboticarm/orange_bird"
 
-# Publish interval: 1 second
-SEND_INTERVAL_MS = 1000
 
 # Initial slider values
 INITIAL_VALUES = [90.0, 90.0, 90.0, 90.0, 90.0]
@@ -42,7 +40,12 @@ def on_connect(client, userdata, flags, rc):
         print(f"Connected to {BROKER}:{PORT}")
     else:
         mqtt_connected = False
-        root.after(0, update_mqtt_status, False, f"MQTT: Connection failed (code {rc})")
+        root.after(
+            0,
+            update_mqtt_status,
+            False,
+            f"MQTT: Connection failed (code {rc})"
+        )
         print(f"Connection failed. Return code: {rc}")
 
 
@@ -50,17 +53,29 @@ def on_disconnect(client, userdata, rc):
     global mqtt_connected
 
     mqtt_connected = False
-    root.after(0, update_mqtt_status, False, "MQTT: Disconnected (Reconnecting...)")
+
+    root.after(
+        0,
+        update_mqtt_status,
+        False,
+        "MQTT: Disconnected (Reconnecting...)"
+    )
 
     if rc == 0:
         print("Disconnected normally.")
     else:
-        print(f"Disconnected unexpectedly. rc={rc}. Attempting to reconnect...")
+        print(
+            f"Disconnected unexpectedly. rc={rc}. "
+            "Attempting to reconnect..."
+        )
 
 
 def on_publish(client, userdata, mid):
-    # Optional: uncomment if you want to trace every published message ID in the console
+    # Optional: uncomment if you want to trace every
+    # published message ID in the console.
+    #
     # print(f"Published. Message ID: {mid}")
+
     pass
 
 
@@ -83,13 +98,18 @@ def get_values():
     """
     Read all five sliders and enforce the 0–180 degree limits.
     """
+
     values = []
 
     for slider in sliders:
         value = float(slider.get())
 
         # Safety clamp
-        value = max(MIN_ANGLE, min(MAX_ANGLE, value))
+        value = max(
+            MIN_ANGLE,
+            min(MAX_ANGLE, value)
+        )
+
         values.append(value)
 
     return values
@@ -101,13 +121,21 @@ def get_values():
 
 def publish_angles():
     """
-    Publish all five current slider values automatically.
+    Publish all five current slider values once.
+    This function is called when SEND ANGLES is clicked.
     """
+
     if not mqtt_connected:
+        print("Cannot send angles: MQTT is not connected.")
         return
 
     values = get_values()
-    payload = struct.pack("<5f", *values)
+
+    # Five little-endian float32 values
+    payload = struct.pack(
+        "<5f",
+        *values
+    )
 
     try:
         result = client.publish(
@@ -117,6 +145,7 @@ def publish_angles():
         )
 
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
+
             print("\n" + "=" * 50)
             print("PUBLISHED")
             print("=" * 50)
@@ -128,27 +157,12 @@ def publish_angles():
             print(f"Bytes: {len(payload)}")
 
         else:
-            print(f"Publish error. Return code: {result.rc}")
+            print(
+                f"Publish error. Return code: {result.rc}"
+            )
 
     except Exception as e:
         print(f"ERROR publishing: {e}")
-
-
-# ============================================================
-# PERIODIC PUBLISH LOOP
-# ============================================================
-
-def periodic_publish():
-    """
-    Publish once every second while MQTT is connected.
-    """
-    if mqtt_connected:
-        publish_angles()
-
-    root.after(
-        SEND_INTERVAL_MS,
-        periodic_publish
-    )
 
 
 # ============================================================
@@ -156,17 +170,25 @@ def periodic_publish():
 # ============================================================
 
 def update_mqtt_status(connected, text):
+
     if connected:
+
         status_label.config(
             text=text,
             foreground="#55ff55"
         )
+
     else:
-        if "Reconnecting" in text or "Connecting" in text:
+
+        if (
+            "Reconnecting" in text
+            or "Connecting" in text
+        ):
             status_label.config(
                 text=text,
                 foreground="#ffcc44"
             )
+
         else:
             status_label.config(
                 text=text,
@@ -179,8 +201,13 @@ def update_mqtt_status(connected, text):
 # ============================================================
 
 def slider_changed(value):
+
     for i, slider in enumerate(sliders):
-        current_value = float(slider.get())
+
+        current_value = float(
+            slider.get()
+        )
+
         value_labels[i].config(
             text=f"{current_value:.1f}°"
         )
@@ -191,11 +218,14 @@ def slider_changed(value):
 # ============================================================
 
 def reset_sliders():
+
     for slider in sliders:
         slider.set(90.0)
 
     for label in value_labels:
-        label.config(text="90.0°")
+        label.config(
+            text="90.0°"
+        )
 
     print("All angles reset to 90°.")
 
@@ -243,7 +273,7 @@ title_label.pack(
 
 subtitle_label = tk.Label(
     root,
-    text="Five 0–180° controls • Auto-publishing at 1 Hz",
+    text="Five 0–180° controls • Click SEND ANGLES to publish",
     font=("Arial", 11),
     bg="#111111",
     fg="#aaaaaa"
@@ -311,6 +341,11 @@ for i in range(5):
 
     column.pack_propagate(False)
 
+
+    # --------------------------------------------------------
+    # ANGLE NAME
+    # --------------------------------------------------------
+
     name_label = tk.Label(
         column,
         text=f"ANGLE {i + 1}",
@@ -322,6 +357,11 @@ for i in range(5):
     name_label.pack(
         pady=(15, 5)
     )
+
+
+    # --------------------------------------------------------
+    # CURRENT VALUE
+    # --------------------------------------------------------
 
     value_label = tk.Label(
         column,
@@ -338,6 +378,11 @@ for i in range(5):
     value_labels.append(
         value_label
     )
+
+
+    # --------------------------------------------------------
+    # SLIDER
+    # --------------------------------------------------------
 
     slider = tk.Scale(
         column,
@@ -372,6 +417,11 @@ for i in range(5):
         slider
     )
 
+
+    # --------------------------------------------------------
+    # RANGE
+    # --------------------------------------------------------
+
     range_label = tk.Label(
         column,
         text="0° ← 180°",
@@ -399,7 +449,10 @@ button_frame.pack(
 )
 
 
-# Reset
+# ============================================================
+# RESET BUTTON
+# ============================================================
+
 reset_button = tk.Button(
     button_frame,
     text="RESET TO 90°",
@@ -416,6 +469,31 @@ reset_button = tk.Button(
 )
 
 reset_button.pack(
+    side="left",
+    padx=6
+)
+
+
+# ============================================================
+# SEND BUTTON
+# ============================================================
+
+send_button = tk.Button(
+    button_frame,
+    text="SEND ANGLES",
+    command=publish_angles,
+    font=("Arial", 11, "bold"),
+    bg="#2d7dfa",
+    fg="white",
+    activebackground="#1f66d1",
+    activeforeground="white",
+    padx=25,
+    pady=10,
+    relief="flat",
+    cursor="hand2"
+)
+
+send_button.pack(
     side="left",
     padx=6
 )
@@ -446,7 +524,7 @@ info_label = tk.Label(
     root,
     text=(
         "Range: 0–180°   |   "
-        "Update rate: 1 Hz   |   "
+        "Manual sending   |   "
         "Payload: 5 × little-endian float32   |   "
         "20 bytes"
     ),
@@ -461,19 +539,24 @@ info_label.pack(
 
 
 # ============================================================
-# STARTUP MQTT CONNECTION & TIMERS
+# STARTUP MQTT CONNECTION
 # ============================================================
 
 try:
-    client.loop_start()
-    client.connect(BROKER, PORT, 60)
-except Exception as e:
-    print(f"Initial connection error: {e}")
 
-root.after(
-    SEND_INTERVAL_MS,
-    periodic_publish
-)
+    client.loop_start()
+
+    client.connect(
+        BROKER,
+        PORT,
+        60
+    )
+
+except Exception as e:
+
+    print(
+        f"Initial connection error: {e}"
+    )
 
 
 # ============================================================
@@ -481,6 +564,7 @@ root.after(
 # ============================================================
 
 def close_application():
+
     print("Closing application...")
 
     try:
@@ -511,8 +595,9 @@ print("5-AXIS MQTT ANGLE CONTROLLER")
 print("=" * 60)
 print(f"Broker       : {BROKER}:{PORT}")
 print(f"Topic        : {SEND_TOPIC}")
-print("Update rate  : 1 Hz (Auto-publishing)")
+print("Send mode    : Manual")
 print("Initial vals : 90, 90, 90, 90, 90")
 print("=" * 60)
+
 
 root.mainloop()
