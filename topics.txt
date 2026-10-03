@@ -1,0 +1,3 @@
+validatecontrolsignals/roboticarm/orange_bird
+
+transmitcontrolsignals/roboticarm/orange_bird
