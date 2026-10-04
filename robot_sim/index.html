@@ -23,7 +23,7 @@
 
 <div id="controls">
     Joint 1:
-    <span id="value">0°</span>
+    <span id="value">90°</span>
     <br>
     <input id="slider" type="range" min="0" max="180" value="90">
 </div>
@@ -107,10 +107,59 @@
 
     joint1.add(base);
 
+    // Table
+
+    const tableGeometry = new THREE.PlaneGeometry(
+        12,
+        12
+    );
+
+    const tableMaterial = new THREE.MeshStandardMaterial({
+        color: 0x777777,
+        side: THREE.DoubleSide
+    });
+
+    const table = new THREE.Mesh(
+        tableGeometry,
+        tableMaterial
+    );
+
+    table.rotation.x = -Math.PI / 2;
+
+    scene.add(table);
+
+    // Cube
+
+    const cubeGeometry = new THREE.BoxGeometry(
+        0.8,
+        0.8,
+        0.8
+    );
+
+    const cubeMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff5533
+    });
+
+    const cube = new THREE.Mesh(
+        cubeGeometry,
+        cubeMaterial
+    );
+
+    cube.position.set(
+        4,
+        0.4,
+        0
+    );
+
+    scene.add(cube);
+
 
     // Slider
     const slider = document.getElementById("slider");
     const value = document.getElementById("value");
+
+    joint1.rotation.y =
+    THREE.MathUtils.degToRad(90);
 
     slider.addEventListener("input", function () {
 
