@@ -15,6 +15,11 @@
             left: 20px;
             background: white;
             padding: 10px;
+            font-family: Arial, sans-serif;
+        }
+
+        #controls input {
+            width: 180px;
         }
     </style>
 </head>
@@ -63,6 +68,34 @@
         value="110"
     >
 
+    <br><br>
+
+    Wrist:
+    <span id="value4">90°</span>
+    <br>
+
+    <input
+        id="slider4"
+        type="range"
+        min="0"
+        max="180"
+        value="90"
+    >
+
+    <br><br>
+
+    Gripper:
+    <span id="value5">50%</span>
+    <br>
+
+    <input
+        id="slider5"
+        type="range"
+        min="0"
+        max="100"
+        value="50"
+    >
+
 </div>
 
 
@@ -109,9 +142,9 @@
         );
 
     camera.position.set(
+        5,
         4,
-        4,
-        6
+        7
     );
 
     camera.lookAt(
@@ -196,7 +229,7 @@
 
 
     // ========================================
-    // JOINT 1
+    // JOINT 1 - BASE
     // ========================================
 
     const joint1 =
@@ -344,31 +377,139 @@
 
 
     // ========================================
-    // TABLE / FLOOR
+    // JOINT 4 - WRIST
     // ========================================
 
-    const tableGeometry =
-        new THREE.PlaneGeometry(
-            12,
-            12
+    const joint4 =
+        new THREE.Group();
+
+    // Wrist is attached to the
+    // end of the forearm.
+
+    joint4.position.y =
+        2.0;
+
+    joint3.add(joint4);
+
+
+    // ========================================
+    // WRIST HOUSING
+    // ========================================
+
+    const wristGeometry =
+        new THREE.BoxGeometry(
+            0.75,
+            0.4,
+            0.75
         );
 
-    const tableMaterial =
+    const wristMaterial =
         new THREE.MeshStandardMaterial({
-            color: 0x777777,
-            side: THREE.DoubleSide
+            color: 0x1f6fa8
         });
 
-    const table =
+    const wrist =
         new THREE.Mesh(
-            tableGeometry,
-            tableMaterial
+            wristGeometry,
+            wristMaterial
         );
 
-    table.rotation.x =
-        -Math.PI / 2;
+    wrist.position.y =
+        0.2;
 
-    scene.add(table);
+    joint4.add(wrist);
+
+
+    // ========================================
+    // GRIPPER BASE
+    // ========================================
+
+    const gripperBaseGeometry =
+        new THREE.BoxGeometry(
+            0.7,
+            0.25,
+            0.7
+        );
+
+    const gripperBaseMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x555555
+        });
+
+    const gripperBase =
+        new THREE.Mesh(
+            gripperBaseGeometry,
+            gripperBaseMaterial
+        );
+
+    gripperBase.position.y =
+        0.5;
+
+    joint4.add(gripperBase);
+
+
+    // ========================================
+    // GRIPPER
+    // ========================================
+
+    const gripper =
+        new THREE.Group();
+
+    gripper.position.y =
+        0.6;
+
+    joint4.add(gripper);
+
+
+    // ========================================
+    // LEFT FINGER
+    // ========================================
+
+    const fingerGeometry =
+        new THREE.BoxGeometry(
+            0.15,
+            0.8,
+            0.3
+        );
+
+    const fingerMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x777777
+        });
+
+
+    const leftFinger =
+        new THREE.Mesh(
+            fingerGeometry,
+            fingerMaterial
+        );
+
+    leftFinger.position.set(
+        -0.35,
+        0.4,
+        0
+    );
+
+    gripper.add(leftFinger);
+
+
+    // ========================================
+    // RIGHT FINGER
+    // ========================================
+
+    const rightFinger =
+        new THREE.Mesh(
+            fingerGeometry,
+            fingerMaterial
+        );
+
+    rightFinger.position.set(
+        0.35,
+        0.4,
+        0
+    );
+
+    gripper.add(rightFinger);
 
 
     // ========================================
@@ -403,6 +544,34 @@
 
 
     // ========================================
+    // TABLE / FLOOR
+    // ========================================
+
+    const tableGeometry =
+        new THREE.PlaneGeometry(
+            12,
+            12
+        );
+
+    const tableMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x777777,
+            side: THREE.DoubleSide
+        });
+
+    const table =
+        new THREE.Mesh(
+            tableGeometry,
+            tableMaterial
+        );
+
+    table.rotation.x =
+        -Math.PI / 2;
+
+    scene.add(table);
+
+
+    // ========================================
     // JOINT 1 SLIDER
     // ========================================
 
@@ -416,7 +585,6 @@
             "value"
         );
 
-
     joint1.rotation.y =
         THREE.MathUtils.degToRad(
             90
@@ -428,9 +596,7 @@
         function () {
 
             const degrees =
-                Number(
-                    slider.value
-                );
+                Number(slider.value);
 
             value.textContent =
                 degrees + "°";
@@ -458,14 +624,11 @@
             "value2"
         );
 
-
-    // Joint 2 starts at 110°
-
-    slider2.value = 110;
+    slider2.value =
+        110;
 
     value2.textContent =
         "110°";
-
 
     joint2.rotation.x =
         THREE.MathUtils.degToRad(
@@ -478,22 +641,15 @@
         function () {
 
             const degrees =
-                Number(
-                    slider2.value
-                );
+                Number(slider2.value);
 
             value2.textContent =
                 degrees + "°";
 
-
-            const rotation =
+            joint2.rotation.x =
                 THREE.MathUtils.degToRad(
                     degrees - 90
                 );
-
-
-            joint2.rotation.x =
-                rotation;
 
         }
     );
@@ -513,14 +669,11 @@
             "value3"
         );
 
-
-    // Joint 3 starts at 110°
-
-    slider3.value = 110;
+    slider3.value =
+        110;
 
     value3.textContent =
         "110°";
-
 
     joint3.rotation.x =
         THREE.MathUtils.degToRad(
@@ -533,25 +686,130 @@
         function () {
 
             const degrees =
-                Number(
-                    slider3.value
-                );
+                Number(slider3.value);
 
             value3.textContent =
                 degrees + "°";
 
-
-            const rotation =
+            joint3.rotation.x =
                 THREE.MathUtils.degToRad(
                     degrees - 90
                 );
 
+        }
+    );
 
-            joint3.rotation.x =
-                rotation;
+
+    // ========================================
+    // JOINT 4 - WRIST TWIST
+    // ========================================
+
+    const slider4 =
+        document.getElementById(
+            "slider4"
+        );
+
+    const value4 =
+        document.getElementById(
+            "value4"
+        );
+
+
+    // Wrist starts at 90°
+
+    joint4.rotation.y =
+        THREE.MathUtils.degToRad(
+            90 - 90
+        );
+
+
+    slider4.addEventListener(
+        "input",
+        function () {
+
+            const degrees =
+                Number(slider4.value);
+
+            value4.textContent =
+                degrees + "°";
+
+
+            // ====================================
+            // WRIST TWIST
+            //
+            // The forearm runs along the
+            // local Y axis, so the wrist
+            // twists around the local Y axis.
+            // ====================================
+
+            joint4.rotation.y =
+                THREE.MathUtils.degToRad(
+                    degrees - 90
+                );
 
         }
     );
+
+
+    // ========================================
+    // GRIPPER SLIDER
+    // ========================================
+
+    const slider5 =
+        document.getElementById(
+            "slider5"
+        );
+
+    const value5 =
+        document.getElementById(
+            "value5"
+        );
+
+
+    slider5.addEventListener(
+        "input",
+        function () {
+
+            const percent =
+                Number(slider5.value);
+
+            value5.textContent =
+                percent + "%";
+
+
+            // 0% = closed
+            // 100% = fully open
+
+            const maxOpening =
+                0.35;
+
+            const opening =
+                maxOpening *
+                (percent / 100);
+
+
+            leftFinger.position.x =
+                -opening;
+
+            rightFinger.position.x =
+                opening;
+
+        }
+    );
+
+
+    // ========================================
+    // INITIAL GRIPPER POSITION
+    // ========================================
+
+    const initialOpening =
+        0.35 * 0.5;
+
+    leftFinger.position.x =
+        -initialOpening;
+
+    rightFinger.position.x =
+        initialOpening;
 
 
     // ========================================
