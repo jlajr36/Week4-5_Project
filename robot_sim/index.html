@@ -1,199 +1,143 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adeept 5-DOF Arm — Three.js 3D Digital Twin</title>
+    <title>Robot Digital Twin</title>
+
     <style>
-        body { margin: 0; overflow: hidden; background-color: #121212; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #canvas-container { width: 100vw; height: 100vh; }
-        #overlay {
-            position: absolute; top: 15px; left: 15px; background: rgba(20, 20, 20, 0.85);
-            color: #ffffff; padding: 18px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); min-width: 280px;
+        body {
+            margin: 0;
+            overflow: hidden;
         }
-        h2 { margin: 0 0 10px 0; font-size: 16px; color: #00e5ff; text-transform: uppercase; letter-spacing: 1px; }
-        .status-tag { display: inline-block; padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 4px; background: #333; margin-bottom: 12px; }
-        .telemetry-row { display: flex; justify-content: space-between; font-family: monospace; font-size: 13px; margin: 4px 0; color: #ccc; }
-        .val { color: #76ff03; font-weight: bold; }
-        #ee-readout { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; font-family: monospace; color: #ffd600; font-size: 12px; }
+
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px;
+        }
     </style>
-    <!-- Three.js & OrbitControls -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <!-- Paho MQTT WebSockets -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
 </head>
+
 <body>
 
-    <div id="canvas-container"></div>
+<div id="controls">
+    Joint 1:
+    <span id="value">0°</span>
+    <br>
+    <input id="slider" type="range" min="0" max="180" value="90">
+</div>
 
-    <div id="overlay">
-        <h2>5-DOF 3D Digital Twin</h2>
-        <div id="status" class="status-tag" style="color: #ffb300;">MQTT: CONNECTING...</div>
-        
-        <div class="telemetry-row"><span>Axis 1 (Base):</span><span id="a1" class="val">90.0°</span></div>
-        <div class="telemetry-row"><span>Axis 2 (Shoulder):</span><span id="a2" class="val">90.0°</span></div>
-        <div class="telemetry-row"><span>Axis 3 (Elbow):</span><span id="a3" class="val">90.0°</span></div>
-        <div class="telemetry-row"><span>Axis 4 (Wrist):</span><span id="a4" class="val">90.0°</span></div>
-        <div class="telemetry-row"><span>Axis 5 (Claw):</span><span id="a5" class="val">45.0°</span></div>
-        
-        <div id="ee-readout">EE Pos: X: 0.0 | Y: 12.0 | Z: 11.5 cm</div>
-    </div>
+<script type="module">
 
-    <script>
-        // --- 1. Three.js Scene Setup ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x121212);
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(25, 20, 35);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        container.appendChild(renderer.domElement);
+    // Scene
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x202020);
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
 
-        // Lighting
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(20, 40, 20);
-        scene.add(dirLight);
+    // Camera
+    const camera = new THREE.PerspectiveCamera(
+        50,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+    );
 
-        // Ground Grid
-        const grid = new THREE.GridHelper(50, 50, 0x00e5ff, 0x333333);
-        grid.position.y = 0;
-        scene.add(grid);
+    camera.position.set(4, 4, 6);
+    camera.lookAt(0, 0, 0);
 
-        // --- 2. Hierarchical Robot Model ---
-        const matBase = new THREE.MeshStandardMaterial({ color: 0xff9100, roughness: 0.3 });
-        const matUpper = new THREE.MeshStandardMaterial({ color: 0x00e5ff, roughness: 0.3 });
-        const matForearm = new THREE.MeshStandardMaterial({ color: 0x76ff03, roughness: 0.3 });
-        const matWrist = new THREE.MeshStandardMaterial({ color: 0xe040fb, roughness: 0.3 });
-        const matClaw = new THREE.MeshStandardMaterial({ color: 0xff1744 });
 
-        // Base Joint (Axis 1 Yaw)
-        const baseGroup = new THREE.Group();
-        scene.add(baseGroup);
-        const baseMesh = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 4, 3.5, 32), matBase);
-        baseMesh.position.y = 1.75;
-        baseGroup.add(baseMesh);
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
 
-        // Shoulder Joint (Axis 2 Pitch)
-        const shoulderGroup = new THREE.Group();
-        shoulderGroup.position.set(0, 3.5, 0);
-        baseGroup.add(shoulderGroup);
-        const upperMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 8, 16), matUpper);
-        upperMesh.position.y = 4;
-        shoulderGroup.add(upperMesh);
+    renderer.setSize(
+        window.innerWidth,
+        window.innerHeight
+    );
 
-        // Elbow Joint (Axis 3 Pitch)
-        const elbowGroup = new THREE.Group();
-        elbowGroup.position.set(0, 8, 0);
-        shoulderGroup.add(elbowGroup);
-        const forearmMesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 8, 16), matForearm);
-        forearmMesh.position.y = 4;
-        elbowGroup.add(forearmMesh);
+    document.body.appendChild(renderer.domElement);
 
-        // Wrist Joint (Axis 4 Pitch)
-        const wristGroup = new THREE.Group();
-        wristGroup.position.set(0, 8, 0);
-        elbowGroup.add(wristGroup);
-        const wristMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 4, 16), matWrist);
-        wristMesh.position.y = 2;
-        wristGroup.add(wristMesh);
 
-        // Gripper Claw
-        const clawGroup = new THREE.Group();
-        clawGroup.position.set(0, 4, 0);
-        wristGroup.add(clawGroup);
+    // Light
+    const light = new THREE.DirectionalLight(0xffffff, 3);
 
-        const clawLeft = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.5, 0.4), matClaw);
-        const clawRight = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.5, 0.4), matClaw);
-        clawLeft.position.set(-0.8, 1.25, 0);
-        clawRight.position.set(0.8, 1.25, 0);
-        clawGroup.add(clawLeft);
-        clawGroup.add(clawRight);
+    light.position.set(5, 10, 5);
 
-        // --- 3. Joint Update Logic ---
-        function updateJoints(a1, a2, a3, a4, a5) {
-            baseGroup.rotation.y = THREE.MathUtils.degToRad(a1 - 90);
-            shoulderGroup.rotation.z = THREE.MathUtils.degToRad(a2 - 90);
-            elbowGroup.rotation.z = THREE.MathUtils.degToRad(a3 - 90);
-            wristGroup.rotation.z = THREE.MathUtils.degToRad(a4 - 90);
+    scene.add(light);
 
-            const spread = 0.4 + 0.8 * (a5 / 90.0);
-            clawLeft.position.x = -spread;
-            clawRight.position.x = spread;
+    scene.add(
+        new THREE.AmbientLight(0xffffff, 1)
+    );
 
-            // Update UI text
-            document.getElementById('a1').textContent = a1.toFixed(1) + '°';
-            document.getElementById('a2').textContent = a2.toFixed(1) + '°';
-            document.getElementById('a3').textContent = a3.toFixed(1) + '°';
-            document.getElementById('a4').textContent = a4.toFixed(1) + '°';
-            document.getElementById('a5').textContent = a5.toFixed(1) + '°';
 
-            // Calculate End-Effector World Position
-            const eeWorldPos = new THREE.Vector3();
-            clawGroup.getWorldPosition(eeWorldPos);
-            document.getElementById('ee-readout').textContent = 
-                `EE Pos: X: ${eeWorldPos.x.toFixed(1)} | Y: ${eeWorldPos.y.toFixed(1)} | Z: ${eeWorldPos.z.toFixed(1)} cm`;
-        }
+    // Robot
+    const robot = new THREE.Group();
 
-        // --- 4. MQTT WebSockets Connection ---
-        const broker = "test.mosquitto.org";
-        const port = 8081; // Secure WebSocket Port
-        const clientID = "ThreeJS_DigitalTwin_" + Math.random().toString(16).substr(2, 8);
-        const client = new Paho.MQTT.Client(`wss://${broker}:${port}/mqtt`, clientID);
+    scene.add(robot);
 
-        client.onConnectionLost = function (response) {
-            document.getElementById('status').textContent = "MQTT: DISCONNECTED";
-            document.getElementById('status').style.color = "#ff5252";
-        };
 
-        client.onMessageArrived = function (message) {
-            // Unpack 20-byte payload (5 x float32 little-endian)
-            if (message.payloadBytes.byteLength === 20) {
-                const view = new DataView(message.payloadBytes.buffer, message.payloadBytes.byteOffset, 20);
-                const a1 = view.getFloat32(0, true);
-                const a2 = view.getFloat32(4, true);
-                const a3 = view.getFloat32(8, true);
-                const a4 = view.getFloat32(12, true);
-                const a5 = view.getFloat32(16, true);
-                updateJoints(a1, a2, a3, a4, a5);
-            }
-        };
+    // Joint 1
+    const joint1 = new THREE.Group();
 
-        client.connect({
-            onSuccess: function () {
-                document.getElementById('status').textContent = "MQTT: RECEIVING LIVE DATA";
-                document.getElementById('status').style.color = "#00e676";
-                client.subscribe("transmitcontrolsignals/roboticarm/orange_bird");
-            },
-            onFailure: function (e) {
-                document.getElementById('status').textContent = "MQTT: CONNECTION FAILED";
-                document.getElementById('status').style.color = "#ff5252";
-            },
-            useSSL: true
-        });
+    robot.add(joint1);
 
-        // --- 5. Render Loop ---
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+    // Base
+    const geometry = new THREE.BoxGeometry(
+        2.5,
+        0.5,
+        2
+    );
+
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x3498db
+    });
+
+    const base = new THREE.Mesh(
+        geometry,
+        material
+    );
+
+    base.position.y = 0.25;
+
+    joint1.add(base);
+
+
+    // Slider
+    const slider = document.getElementById("slider");
+    const value = document.getElementById("value");
+
+    slider.addEventListener("input", function () {
+
+        const degrees = Number(slider.value);
+
+        value.textContent = degrees + "°";
+
+        joint1.rotation.y =
+            THREE.MathUtils.degToRad(degrees);
+
+    });
+
+
+    // Animation
+    function animate() {
+
+        requestAnimationFrame(animate);
+
+        renderer.render(
+            scene,
+            camera
+        );
+    }
+
+    animate();
+
+</script>
+
 </body>
 </html>
