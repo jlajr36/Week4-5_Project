@@ -28,7 +28,7 @@
 
 <div id="controls">
 
-    Joint 1:
+    Base:
     <span id="value">90°</span>
     <br>
 
@@ -42,7 +42,7 @@
 
     <br><br>
 
-    Joint 2:
+    Shoulder:
     <span id="value2">110°</span>
     <br>
 
@@ -56,7 +56,7 @@
 
     <br><br>
 
-    Joint 3:
+    Elbow:
     <span id="value3">110°</span>
     <br>
 
@@ -446,16 +446,16 @@
 
 
     // ========================================
-    // GRIPPER
+    // JOINT 5 - GRIPPER
     // ========================================
 
-    const gripper =
+    const joint5 =
         new THREE.Group();
 
-    gripper.position.y =
+    joint5.position.y =
         0.6;
 
-    joint4.add(gripper);
+    joint4.add(joint5);
 
 
     // ========================================
@@ -491,7 +491,7 @@
         0
     );
 
-    gripper.add(leftFinger);
+    joint5.add(leftFinger);
 
 
     // ========================================
@@ -510,7 +510,7 @@
         0
     );
 
-    gripper.add(rightFinger);
+    joint5.add(rightFinger);
 
 
     // ========================================
@@ -573,7 +573,7 @@
 
 
     // ========================================
-    // JOINT 1 SLIDER
+    // JOINT 1 - BASE SLIDER
     // ========================================
 
     const slider =
@@ -612,7 +612,7 @@
 
 
     // ========================================
-    // JOINT 2 SLIDER
+    // JOINT 2 - SHOULDER SLIDER
     // ========================================
 
     const slider2 =
@@ -657,7 +657,7 @@
 
 
     // ========================================
-    // JOINT 3 SLIDER
+    // JOINT 3 - ELBOW SLIDER
     // ========================================
 
     const slider3 =
@@ -702,7 +702,7 @@
 
 
     // ========================================
-    // JOINT 4 - WRIST TWIST
+    // JOINT 4 - WRIST SLIDER
     // ========================================
 
     const slider4 =
@@ -742,7 +742,7 @@
 
 
     // ========================================
-    // GRIPPER SERVO
+    // JOINT 5 - GRIPPER SLIDER
     // ========================================
 
     const slider5 =
