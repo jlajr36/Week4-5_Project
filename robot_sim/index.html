@@ -49,6 +49,20 @@
         value="90"
     >
 
+    <br><br>
+
+    Joint 3:
+    <span id="value3">90°</span>
+    <br>
+
+    <input
+        id="slider3"
+        type="range"
+        min="0"
+        max="180"
+        value="90"
+    >
+
 </div>
 
 
@@ -241,10 +255,6 @@
             connectorMaterial
         );
 
-    // Base top = 0.5
-    // Connector height = 1.2
-    // Connector center = 1.1
-
     connector.position.y =
         1.1;
 
@@ -252,25 +262,20 @@
 
 
     // ========================================
-    // JOINT 2
+    // JOINT 2 - SHOULDER
     // ========================================
 
     const joint2 =
         new THREE.Group();
 
-    // Joint 2 belongs to Joint 1
-
     joint1.add(joint2);
-
-
-    // Joint 2 sits on top of connector
 
     joint2.position.y =
         1.7;
 
 
     // ========================================
-    // ARM 1
+    // UPPER ARM
     // ========================================
 
     const armGeometry =
@@ -291,12 +296,56 @@
             armMaterial
         );
 
-    // Arm center is 1.25 units above Joint 2
-
     arm1.position.y =
         1.25;
 
     joint2.add(arm1);
+
+
+    // ========================================
+    // JOINT 3 - ELBOW
+    // ========================================
+
+    const joint3 =
+        new THREE.Group();
+
+    // Joint 3 is attached to the
+    // end of the upper arm.
+
+    joint3.position.y =
+        2.5;
+
+    joint2.add(joint3);
+
+
+    // ========================================
+    // FOREARM
+    // ========================================
+
+    const forearmGeometry =
+        new THREE.BoxGeometry(
+            0.5,
+            2.0,
+            0.5
+        );
+
+    const forearmMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x2980b9
+        });
+
+    const forearm =
+        new THREE.Mesh(
+            forearmGeometry,
+            forearmMaterial
+        );
+
+    // Half of the forearm length
+
+    forearm.position.y =
+        1.0;
+
+    joint3.add(forearm);
 
 
     // ========================================
@@ -449,6 +498,61 @@
 
 
             joint2.rotation.x =
+                rotation;
+
+        }
+    );
+
+
+    // ========================================
+    // JOINT 3 SLIDER
+    // ========================================
+
+    const slider3 =
+        document.getElementById(
+            "slider3"
+        );
+
+    const value3 =
+        document.getElementById(
+            "value3"
+        );
+
+
+    slider3.value = 90;
+
+    value3.textContent =
+        "90°";
+
+
+    // Joint 3 starts straight
+
+    joint3.rotation.x =
+        THREE.MathUtils.degToRad(
+            90 - 90
+        );
+
+
+    slider3.addEventListener(
+        "input",
+        function () {
+
+            const degrees =
+                Number(
+                    slider3.value
+                );
+
+            value3.textContent =
+                degrees + "°";
+
+
+            const rotation =
+                THREE.MathUtils.degToRad(
+                    degrees - 90
+                );
+
+
+            joint3.rotation.x =
                 rotation;
 
         }
