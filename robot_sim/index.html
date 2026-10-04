@@ -22,148 +22,306 @@
 <body>
 
 <div id="controls">
+
     Joint 1:
     <span id="value">90°</span>
     <br>
-    <input id="slider" type="range" min="0" max="180" value="90">
+
+    <input
+        id="slider"
+        type="range"
+        min="0"
+        max="180"
+        value="90"
+    >
+
+    <br><br>
+
+    Joint 2:
+    <span id="value2">90°</span>
+    <br>
+
+    <input
+        id="slider2"
+        type="range"
+        min="0"
+        max="180"
+        value="90"
+    >
+
 </div>
 
+
 <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
-        }
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
     }
-    </script>
+}
+</script>
+
 
 <script type="module">
 
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
-    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
+    import * as THREE from "three";
+
+    import {
+        OrbitControls
+    } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
 
 
-    // Scene
+    // ========================================
+    // SCENE
+    // ========================================
+
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x202020);
+
+    scene.background =
+        new THREE.Color(0x202020);
 
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(
-        50,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        100
+    // ========================================
+    // CAMERA
+    // ========================================
+
+    const camera =
+        new THREE.PerspectiveCamera(
+            50,
+            window.innerWidth /
+            window.innerHeight,
+            0.1,
+            100
+        );
+
+    camera.position.set(
+        4,
+        4,
+        6
     );
 
-    camera.position.set(4, 4, 6);
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(
+        0,
+        1,
+        0
+    );
 
 
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({
-        antialias: true
-    });
+    // ========================================
+    // RENDERER
+    // ========================================
+
+    const renderer =
+        new THREE.WebGLRenderer({
+            antialias: true
+        });
 
     renderer.setSize(
         window.innerWidth,
         window.innerHeight
     );
 
-    document.body.appendChild(renderer.domElement);
-
-
-    // Orbit Controls
-    const controls = new OrbitControls(
-        camera,
+    document.body.appendChild(
         renderer.domElement
     );
 
-    controls.target.set(0, 0, 0);
+
+    // ========================================
+    // ORBIT CONTROLS
+    // ========================================
+
+    const controls =
+        new OrbitControls(
+            camera,
+            renderer.domElement
+        );
+
+    controls.target.set(
+        0,
+        1,
+        0
+    );
 
     controls.update();
 
 
-    // Light
-    const light = new THREE.DirectionalLight(0xffffff, 3);
+    // ========================================
+    // LIGHTING
+    // ========================================
 
-    light.position.set(5, 10, 5);
+    const light =
+        new THREE.DirectionalLight(
+            0xffffff,
+            3
+        );
+
+    light.position.set(
+        5,
+        10,
+        5
+    );
 
     scene.add(light);
 
+
     scene.add(
-        new THREE.AmbientLight(0xffffff, 1)
+        new THREE.AmbientLight(
+            0xffffff,
+            1
+        )
     );
 
 
-    // Robot
-    const robot = new THREE.Group();
+    // ========================================
+    // ROBOT
+    // ========================================
+
+    const robot =
+        new THREE.Group();
 
     scene.add(robot);
 
 
-    // Joint 1
-    const joint1 = new THREE.Group();
+    // ========================================
+    // JOINT 1
+    // ========================================
+
+    const joint1 =
+        new THREE.Group();
 
     robot.add(joint1);
 
 
-    // Base
-    const geometry = new THREE.BoxGeometry(
-        2.5,
-        0.5,
-        2
-    );
+    // ========================================
+    // ROBOT BASE
+    // ========================================
 
-    const material = new THREE.MeshStandardMaterial({
-        color: 0x3498db
-    });
+    const baseGeometry =
+        new THREE.BoxGeometry(
+            2.5,
+            0.5,
+            2
+        );
 
-    const base = new THREE.Mesh(
-        geometry,
-        material
-    );
+    const baseMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x3498db
+        });
 
-    base.position.y = 0.25;
+    const base =
+        new THREE.Mesh(
+            baseGeometry,
+            baseMaterial
+        );
+
+    base.position.y =
+        0.25;
 
     joint1.add(base);
 
-    // Table
 
-    const tableGeometry = new THREE.PlaneGeometry(
-        12,
-        12
-    );
+    // ========================================
+    // JOINT 2
+    // ========================================
 
-    const tableMaterial = new THREE.MeshStandardMaterial({
-        color: 0x777777,
-        side: THREE.DoubleSide
-    });
+    const joint2 =
+        new THREE.Group();
 
-    const table = new THREE.Mesh(
-        tableGeometry,
-        tableMaterial
-    );
 
-    table.rotation.x = -Math.PI / 2;
+    // Joint 2 belongs to Joint 1
+
+    joint1.add(joint2);
+
+
+    // Put Joint 2 on top of the base
+
+    joint2.position.y =
+        0.5;
+
+
+    // ========================================
+    // ARM 1
+    // ========================================
+
+    const armGeometry =
+        new THREE.BoxGeometry(
+            0.6,
+            2.5,
+            0.6
+        );
+
+    const armMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x3498db
+        });
+
+    const arm1 =
+        new THREE.Mesh(
+            armGeometry,
+            armMaterial
+        );
+
+
+    // The arm is 2.5 units tall.
+    // Put its center 1.25 units above
+    // Joint 2 so its bottom touches
+    // the joint.
+
+    arm1.position.y =
+        1.25;
+
+
+    joint2.add(arm1);
+
+
+    // ========================================
+    // TABLE / FLOOR
+    // ========================================
+
+    const tableGeometry =
+        new THREE.PlaneGeometry(
+            12,
+            12
+        );
+
+    const tableMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x777777,
+            side: THREE.DoubleSide
+        });
+
+    const table =
+        new THREE.Mesh(
+            tableGeometry,
+            tableMaterial
+        );
+
+    table.rotation.x =
+        -Math.PI / 2;
 
     scene.add(table);
 
-    // Cube
 
-    const cubeGeometry = new THREE.BoxGeometry(
-        0.8,
-        0.8,
-        0.8
-    );
+    // ========================================
+    // TARGET CUBE
+    // ========================================
 
-    const cubeMaterial = new THREE.MeshStandardMaterial({
-        color: 0xff5533
-    });
+    const cubeGeometry =
+        new THREE.BoxGeometry(
+            0.8,
+            0.8,
+            0.8
+        );
 
-    const cube = new THREE.Mesh(
-        cubeGeometry,
-        cubeMaterial
-    );
+    const cubeMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0xff5533
+        });
+
+    const cube =
+        new THREE.Mesh(
+            cubeGeometry,
+            cubeMaterial
+        );
 
     cube.position.set(
         4,
@@ -174,37 +332,164 @@
     scene.add(cube);
 
 
-    // Slider
-    const slider = document.getElementById("slider");
-    const value = document.getElementById("value");
+    // ========================================
+    // JOINT 1 SLIDER
+    // ========================================
+
+    const slider =
+        document.getElementById(
+            "slider"
+        );
+
+    const value =
+        document.getElementById(
+            "value"
+        );
+
+
+    // Joint 1 starts at 90 degrees
 
     joint1.rotation.y =
-    THREE.MathUtils.degToRad(90);
-
-    slider.addEventListener("input", function () {
-
-        const degrees = Number(slider.value);
-
-        value.textContent = degrees + "°";
-
-        joint1.rotation.y =
-            THREE.MathUtils.degToRad(degrees);
-
-    });
+        THREE.MathUtils.degToRad(
+            90
+        );
 
 
-    // Animation
+    slider.addEventListener(
+        "input",
+        function () {
+
+            const degrees =
+                Number(
+                    slider.value
+                );
+
+            value.textContent =
+                degrees + "°";
+
+
+            joint1.rotation.y =
+                THREE.MathUtils.degToRad(
+                    degrees
+                );
+
+        }
+    );
+
+
+    // ========================================
+    // JOINT 2 SLIDER
+    // ========================================
+
+    const slider2 =
+        document.getElementById(
+            "slider2"
+        );
+
+    const value2 =
+        document.getElementById(
+            "value2"
+        );
+
+
+    // Joint 2 starts at 90 degrees
+
+    slider2.value = 90;
+
+    value2.textContent =
+        "90°";
+
+
+    // IMPORTANT:
+    //
+    // Robot angle:
+    //
+    // 0°   = arm tilted one way
+    // 90°  = arm straight up
+    // 180° = arm tilted the other way
+    //
+    // Three.js rotation:
+    //
+    // Robot angle - 90°
+    //
+    // This makes 90° equal to
+    // zero Three.js rotation.
+
+    joint2.rotation.z =
+        THREE.MathUtils.degToRad(
+            90 - 90
+        );
+
+
+    slider2.addEventListener(
+        "input",
+        function () {
+
+            const degrees =
+                Number(
+                    slider2.value
+                );
+
+            value2.textContent =
+                degrees + "°";
+
+
+            const rotation =
+                THREE.MathUtils.degToRad(
+                    degrees - 90
+                );
+
+
+            joint2.rotation.z =
+                rotation;
+
+        }
+    );
+
+
+    // ========================================
+    // ANIMATION LOOP
+    // ========================================
+
     function animate() {
 
-        requestAnimationFrame(animate);
+        requestAnimationFrame(
+            animate
+        );
 
         renderer.render(
             scene,
             camera
         );
+
     }
 
     animate();
+
+
+    // ========================================
+    // WINDOW RESIZE
+    // ========================================
+
+    window.addEventListener(
+        "resize",
+        function () {
+
+            camera.aspect =
+                window.innerWidth /
+                window.innerHeight;
+
+
+            camera.updateProjectionMatrix();
+
+
+            renderer.setSize(
+                window.innerWidth,
+                window.innerHeight
+            );
+
+        }
+    );
 
 </script>
 
