@@ -2,13 +2,11 @@
 <html>
 <head>
     <title>Robot Digital Twin</title>
-
     <style>
         body {
             margin: 0;
             overflow: hidden;
         }
-
         #controls {
             position: absolute;
             top: 20px;
@@ -18,17 +16,14 @@
             font-family: Arial, sans-serif;
             z-index: 10;
         }
-
         #controls input[type="range"] {
             width: 180px;
         }
-
         #physicsControl {
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid #ccc;
         }
-
         #physicsStatus {
             font-weight: bold;
             color: #2980b9;
@@ -39,102 +34,30 @@
 <body>
 
 <div id="controls">
-
     <div id="physicsControl">
-
         <label>
-            <input
-                id="physicsToggle"
-                type="checkbox"
-                checked
-            >
-
+            <input id="physicsToggle" type="checkbox" checked>
             Physics ON
         </label>
-
         <br>
-
-        <span id="physicsStatus">
-            Gravity active
-        </span>
-
+        <span id="physicsStatus">Gravity active</span>
     </div>
 
+    Base: <span id="value">90°</span><br>
+    <input id="slider" type="range" min="0" max="180" value="90"><br><br>
 
-    Base:
-    <span id="value">90°</span>
-    <br>
+    Shoulder: <span id="value2">110°</span><br>
+    <input id="slider2" type="range" min="0" max="180" value="110"><br><br>
 
-    <input
-        id="slider"
-        type="range"
-        min="0"
-        max="180"
-        value="90"
-    >
+    Elbow: <span id="value3">110°</span><br>
+    <input id="slider3" type="range" min="0" max="180" value="110"><br><br>
 
-    <br><br>
+    Wrist: <span id="value4">90°</span><br>
+    <input id="slider4" type="range" min="0" max="180" value="90"><br><br>
 
-
-    Shoulder:
-    <span id="value2">110°</span>
-    <br>
-
-    <input
-        id="slider2"
-        type="range"
-        min="0"
-        max="180"
-        value="110"
-    >
-
-    <br><br>
-
-
-    Elbow:
-    <span id="value3">110°</span>
-    <br>
-
-    <input
-        id="slider3"
-        type="range"
-        min="0"
-        max="180"
-        value="110"
-    >
-
-    <br><br>
-
-
-    Wrist:
-    <span id="value4">90°</span>
-    <br>
-
-    <input
-        id="slider4"
-        type="range"
-        min="0"
-        max="180"
-        value="90"
-    >
-
-    <br><br>
-
-
-    Gripper:
-    <span id="value5">90°</span>
-    <br>
-
-    <input
-        id="slider5"
-        type="range"
-        min="0"
-        max="180"
-        value="90"
-    >
-
+    Gripper: <span id="value5">90°</span><br>
+    <input id="slider5" type="range" min="0" max="180" value="90">
 </div>
-
 
 <script type="importmap">
 {
@@ -144,987 +67,296 @@
 }
 </script>
 
-
 <script type="module">
-
 import * as THREE from "three";
-
-import {
-    OrbitControls
-} from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
-
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
 
 // ========================================
-// SCENE
+// SCENE & RENDERER SETUP
 // ========================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x202020);
 
-const scene =
-    new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(5, 4, 7);
+camera.lookAt(0, 1, 0);
 
-scene.background =
-    new THREE.Color(0x202020);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-
-// ========================================
-// CAMERA
-// ========================================
-
-const camera =
-    new THREE.PerspectiveCamera(
-        50,
-        window.innerWidth /
-        window.innerHeight,
-        0.1,
-        100
-    );
-
-camera.position.set(
-    5,
-    4,
-    7
-);
-
-camera.lookAt(
-    0,
-    1,
-    0
-);
-
-
-// ========================================
-// RENDERER
-// ========================================
-
-const renderer =
-    new THREE.WebGLRenderer({
-        antialias: true
-    });
-
-renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
-);
-
-document.body.appendChild(
-    renderer.domElement
-);
-
-
-// ========================================
-// ORBIT CONTROLS
-// ========================================
-
-const controls =
-    new OrbitControls(
-        camera,
-        renderer.domElement
-    );
-
-controls.target.set(
-    0,
-    1,
-    0
-);
-
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1, 0);
 controls.update();
-
 
 // ========================================
 // LIGHTING
 // ========================================
-
-const light =
-    new THREE.DirectionalLight(
-        0xffffff,
-        3
-    );
-
-light.position.set(
-    5,
-    10,
-    5
-);
-
+const light = new THREE.DirectionalLight(0xffffff, 3);
+light.position.set(5, 10, 5);
 scene.add(light);
-
-scene.add(
-    new THREE.AmbientLight(
-        0xffffff,
-        1
-    )
-);
-
+scene.add(new THREE.AmbientLight(0xffffff, 1));
 
 // ========================================
-// ROBOT
+// ROBOT HIERARCHY
 // ========================================
-
-const robot =
-    new THREE.Group();
-
+const robot = new THREE.Group();
 scene.add(robot);
 
-
-// ========================================
-// JOINT 1 - BASE
-// ========================================
-
-const joint1 =
-    new THREE.Group();
-
+const joint1 = new THREE.Group();
 robot.add(joint1);
 
-
-// ========================================
-// ROBOT BASE
-// ========================================
-
-const baseGeometry =
-    new THREE.BoxGeometry(
-        2.5,
-        0.5,
-        2
-    );
-
-const baseMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x3498db
-    });
-
-const base =
-    new THREE.Mesh(
-        baseGeometry,
-        baseMaterial
-    );
-
-base.position.y =
-    0.25;
-
+const baseGeometry = new THREE.BoxGeometry(2.5, 0.5, 2);
+const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x3498db });
+const base = new THREE.Mesh(baseGeometry, baseMaterial);
+base.position.y = 0.25;
 joint1.add(base);
 
-
-// ========================================
-// STATIC CONNECTOR
-// ========================================
-
-const connectorGeometry =
-    new THREE.BoxGeometry(
-        0.6,
-        1.2,
-        0.6
-    );
-
-const connectorMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x3498db
-    });
-
-const connector =
-    new THREE.Mesh(
-        connectorGeometry,
-        connectorMaterial
-    );
-
-connector.position.y =
-    1.1;
-
+const connectorGeometry = new THREE.BoxGeometry(0.6, 1.2, 0.6);
+const connector = new THREE.Mesh(connectorGeometry, baseMaterial);
+connector.position.y = 1.1;
 joint1.add(connector);
 
-
-// ========================================
-// JOINT 2 - SHOULDER
-// ========================================
-
-const joint2 =
-    new THREE.Group();
-
+const joint2 = new THREE.Group();
 joint1.add(joint2);
+joint2.position.y = 1.7;
 
-joint2.position.y =
-    1.7;
-
-
-// ========================================
-// UPPER ARM
-// ========================================
-
-const armGeometry =
-    new THREE.BoxGeometry(
-        0.6,
-        2.5,
-        0.6
-    );
-
-const armMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x3498db
-    });
-
-const arm1 =
-    new THREE.Mesh(
-        armGeometry,
-        armMaterial
-    );
-
-arm1.position.y =
-    1.25;
-
+const armGeometry = new THREE.BoxGeometry(0.6, 2.5, 0.6);
+const arm1 = new THREE.Mesh(armGeometry, baseMaterial);
+arm1.position.y = 1.25;
 joint2.add(arm1);
 
-
-// ========================================
-// JOINT 3 - ELBOW
-// ========================================
-
-const joint3 =
-    new THREE.Group();
-
-joint3.position.y =
-    2.5;
-
+const joint3 = new THREE.Group();
+joint3.position.y = 2.5;
 joint2.add(joint3);
 
-
-// ========================================
-// FOREARM
-// ========================================
-
-const forearmGeometry =
-    new THREE.BoxGeometry(
-        0.6,
-        2.0,
-        0.6
-    );
-
-const forearmMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x2980b9
-    });
-
-const forearm =
-    new THREE.Mesh(
-        forearmGeometry,
-        forearmMaterial
-    );
-
-forearm.position.y =
-    1.0;
-
+const forearmGeometry = new THREE.BoxGeometry(0.6, 2.0, 0.6);
+const forearmMaterial = new THREE.MeshStandardMaterial({ color: 0x2980b9 });
+const forearm = new THREE.Mesh(forearmGeometry, forearmMaterial);
+forearm.position.y = 1.0;
 joint3.add(forearm);
 
-
-// ========================================
-// JOINT 4 - WRIST
-// ========================================
-
-const joint4 =
-    new THREE.Group();
-
-joint4.position.y =
-    2.0;
-
+const joint4 = new THREE.Group();
+joint4.position.y = 2.0;
 joint3.add(joint4);
 
-
-// ========================================
-// WRIST HOUSING
-// ========================================
-
-const wristGeometry =
-    new THREE.BoxGeometry(
-        0.75,
-        0.4,
-        0.75
-    );
-
-const wristMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x1f6fa8
-    });
-
-const wrist =
-    new THREE.Mesh(
-        wristGeometry,
-        wristMaterial
-    );
-
-wrist.position.y =
-    0.2;
-
+const wristGeometry = new THREE.BoxGeometry(0.75, 0.4, 0.75);
+const wristMaterial = new THREE.MeshStandardMaterial({ color: 0x1f6fa8 });
+const wrist = new THREE.Mesh(wristGeometry, wristMaterial);
+wrist.position.y = 0.2;
 joint4.add(wrist);
 
-
-// ========================================
-// GRIPPER BASE
-// ========================================
-
-const gripperBaseGeometry =
-    new THREE.BoxGeometry(
-        0.9,
-        0.25,
-        0.9
-    );
-
-const gripperBaseMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x555555
-    });
-
-const gripperBase =
-    new THREE.Mesh(
-        gripperBaseGeometry,
-        gripperBaseMaterial
-    );
-
-gripperBase.position.y =
-    0.5;
-
+const gripperBaseGeometry = new THREE.BoxGeometry(0.9, 0.25, 0.9);
+const gripperBaseMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 });
+const gripperBase = new THREE.Mesh(gripperBaseGeometry, gripperBaseMaterial);
+gripperBase.position.y = 0.5;
 joint4.add(gripperBase);
 
-
-// ========================================
-// JOINT 5 - GRIPPER
-// ========================================
-
-const joint5 =
-    new THREE.Group();
-
-joint5.position.y =
-    0.6;
-
+const joint5 = new THREE.Group();
+joint5.position.y = 0.6;
 joint4.add(joint5);
 
+const fingerGeometry = new THREE.BoxGeometry(0.18, 0.8, 0.35);
+const fingerMaterial = new THREE.MeshStandardMaterial({ color: 0x777777 });
 
-// ========================================
-// GRIPPER FINGERS
-// ========================================
-
-const fingerGeometry =
-    new THREE.BoxGeometry(
-        0.18,
-        0.8,
-        0.35
-    );
-
-const fingerMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x777777
-    });
-
-
-// LEFT FINGER
-
-const leftFinger =
-    new THREE.Mesh(
-        fingerGeometry,
-        fingerMaterial
-    );
-
-leftFinger.position.set(
-    -0.275,
-    0.4,
-    0
-);
-
+const leftFinger = new THREE.Mesh(fingerGeometry, fingerMaterial);
+leftFinger.position.set(-0.4, 0.4, 0);
 joint5.add(leftFinger);
 
-
-// RIGHT FINGER
-
-const rightFinger =
-    new THREE.Mesh(
-        fingerGeometry,
-        fingerMaterial
-    );
-
-rightFinger.position.set(
-    0.275,
-    0.4,
-    0
-);
-
+const rightFinger = new THREE.Mesh(fingerGeometry, fingerMaterial);
+rightFinger.position.set(0.4, 0.4, 0);
 joint5.add(rightFinger);
 
-
 // ========================================
-// TARGET CUBE
+// ENVIRONMENT (CUBE & TABLE)
 // ========================================
-
-const cubeGeometry =
-    new THREE.BoxGeometry(
-        0.8,
-        0.8,
-        0.8
-    );
-
-const cubeMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0xff5533
-    });
-
-const cube =
-    new THREE.Mesh(
-        cubeGeometry,
-        cubeMaterial
-    );
-
-cube.position.set(
-    4,
-    0.4,
-    0
-);
-
+const cubeGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff5533 });
+const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+cube.position.set(4, 0.4, 0);
 scene.add(cube);
 
-
-// ========================================
-// TABLE / FLOOR
-// ========================================
-
-const tableGeometry =
-    new THREE.PlaneGeometry(
-        12,
-        12
-    );
-
-const tableMaterial =
-    new THREE.MeshStandardMaterial({
-        color: 0x777777,
-        side: THREE.DoubleSide
-    });
-
-const table =
-    new THREE.Mesh(
-        tableGeometry,
-        tableMaterial
-    );
-
-table.rotation.x =
-    -Math.PI / 2;
-
+const tableGeometry = new THREE.PlaneGeometry(12, 12);
+const tableMaterial = new THREE.MeshStandardMaterial({ color: 0x777777, side: THREE.DoubleSide });
+const table = new THREE.Mesh(tableGeometry, tableMaterial);
+table.rotation.x = -Math.PI / 2;
 scene.add(table);
 
-
 // ========================================
-// PHYSICS
+// PHYSICS STATE
 // ========================================
-
 let physicsEnabled = true;
-
 let cubeVelocityY = 0;
-
 let cubeHeld = false;
+const gravity = -9.8;
+const cubeHalfHeight = 0.4;
+const grabDistance = 0.6;
 
+const physicsToggle = document.getElementById("physicsToggle");
+const physicsStatus = document.getElementById("physicsStatus");
 
-// Gravity strength
-
-const gravity =
-    -9.8;
-
-
-// Cube half-height
-
-const cubeHalfHeight =
-    0.4;
-
-
-// How close the gripper must be
-
-// to grab the cube.
-
-const grabDistance =
-    0.9;
-
-
-// ========================================
-// PHYSICS TOGGLE
-// ========================================
-
-const physicsToggle =
-    document.getElementById(
-        "physicsToggle"
-    );
-
-const physicsStatus =
-    document.getElementById(
-        "physicsStatus"
-    );
-
-
-physicsToggle.addEventListener(
-    "change",
-    function () {
-
-        physicsEnabled =
-            physicsToggle.checked;
-
-        if (physicsEnabled) {
-
-            physicsStatus.textContent =
-                "Gravity active";
-
-            physicsStatus.style.color =
-                "#2980b9";
-
-        } else {
-
-            physicsStatus.textContent =
-                "Gravity disabled";
-
-            physicsStatus.style.color =
-                "#777777";
-
-            cubeVelocityY =
-                0;
-        }
-
+physicsToggle.addEventListener("change", function () {
+    physicsEnabled = physicsToggle.checked;
+    if (physicsEnabled) {
+        physicsStatus.textContent = "Gravity active";
+        physicsStatus.style.color = "#2980b9";
+    } else {
+        physicsStatus.textContent = "Gravity disabled";
+        physicsStatus.style.color = "#777777";
+        cubeVelocityY = 0;
     }
-);
+});
 
-
-// ========================================
-// GRIPPER WORLD POSITION
-// ========================================
-
-const gripperWorldPosition =
-    new THREE.Vector3();
-
+const gripperWorldPosition = new THREE.Vector3();
+const cubeWorldPosition = new THREE.Vector3();
 
 // ========================================
-// CUBE WORLD POSITION
+// SLIDER CONTROLS & KINEMATICS
 // ========================================
+const slider = document.getElementById("slider");
+const value = document.getElementById("value");
+joint1.rotation.y = THREE.MathUtils.degToRad(90);
 
-const cubeWorldPosition =
-    new THREE.Vector3();
+slider.addEventListener("input", function () {
+    const degrees = Number(slider.value);
+    value.textContent = degrees + "°";
+    joint1.rotation.y = THREE.MathUtils.degToRad(degrees);
+});
 
+const slider2 = document.getElementById("slider2");
+const value2 = document.getElementById("value2");
+joint2.rotation.x = THREE.MathUtils.degToRad(110 - 90);
 
-// ========================================
-// BASE SLIDER
-// ========================================
+slider2.addEventListener("input", function () {
+    const degrees = Number(slider2.value);
+    value2.textContent = degrees + "°";
+    joint2.rotation.x = THREE.MathUtils.degToRad(degrees - 90);
+});
 
-const slider =
-    document.getElementById(
-        "slider"
-    );
+const slider3 = document.getElementById("slider3");
+const value3 = document.getElementById("value3");
+joint3.rotation.x = THREE.MathUtils.degToRad(110 - 90);
 
-const value =
-    document.getElementById(
-        "value"
-    );
+slider3.addEventListener("input", function () {
+    const degrees = Number(slider3.value);
+    value3.textContent = degrees + "°";
+    joint3.rotation.x = THREE.MathUtils.degToRad(degrees - 90);
+});
 
-joint1.rotation.y =
-    THREE.MathUtils.degToRad(
-        90
-    );
+const slider4 = document.getElementById("slider4");
+const value4 = document.getElementById("value4");
 
+slider4.addEventListener("input", function () {
+    const degrees = Number(slider4.value);
+    value4.textContent = degrees + "°";
+    joint4.rotation.y = THREE.MathUtils.degToRad(degrees - 90);
+});
 
-slider.addEventListener(
-    "input",
-    function () {
-
-        const degrees =
-            Number(slider.value);
-
-        value.textContent =
-            degrees + "°";
-
-        joint1.rotation.y =
-            THREE.MathUtils.degToRad(
-                degrees
-            );
-
-    }
-);
-
-
-// ========================================
-// SHOULDER SLIDER
-// ========================================
-
-const slider2 =
-    document.getElementById(
-        "slider2"
-    );
-
-const value2 =
-    document.getElementById(
-        "value2"
-    );
-
-joint2.rotation.x =
-    THREE.MathUtils.degToRad(
-        110 - 90
-    );
-
-
-slider2.addEventListener(
-    "input",
-    function () {
-
-        const degrees =
-            Number(slider2.value);
-
-        value2.textContent =
-            degrees + "°";
-
-        joint2.rotation.x =
-            THREE.MathUtils.degToRad(
-                degrees - 90
-            );
-
-    }
-);
-
-
-// ========================================
-// ELBOW SLIDER
-// ========================================
-
-const slider3 =
-    document.getElementById(
-        "slider3"
-    );
-
-const value3 =
-    document.getElementById(
-        "value3"
-    );
-
-joint3.rotation.x =
-    THREE.MathUtils.degToRad(
-        110 - 90
-    );
-
-
-slider3.addEventListener(
-    "input",
-    function () {
-
-        const degrees =
-            Number(slider3.value);
-
-        value3.textContent =
-            degrees + "°";
-
-        joint3.rotation.x =
-            THREE.MathUtils.degToRad(
-                degrees - 90
-            );
-
-    }
-);
-
-
-// ========================================
-// WRIST SLIDER
-// ========================================
-
-const slider4 =
-    document.getElementById(
-        "slider4"
-    );
-
-const value4 =
-    document.getElementById(
-        "value4"
-    );
-
-joint4.rotation.y =
-    THREE.MathUtils.degToRad(
-        0
-    );
-
-
-slider4.addEventListener(
-    "input",
-    function () {
-
-        const degrees =
-            Number(slider4.value);
-
-        value4.textContent =
-            degrees + "°";
-
-        joint4.rotation.y =
-            THREE.MathUtils.degToRad(
-                degrees - 90
-            );
-
-    }
-);
-
-
-// ========================================
-// GRIPPER SLIDER
-// ========================================
-
-const slider5 =
-    document.getElementById(
-        "slider5"
-    );
-
-const value5 =
-    document.getElementById(
-        "value5"
-    );
-
-
+const slider5 = document.getElementById("slider5");
+const value5 = document.getElementById("value5");
 let gripperAngle = 90;
 
-
 function updateGripper(degrees) {
+    gripperAngle = degrees;
+    value5.textContent = degrees + "°";
+    
+    const minOpening = 0.4;
+    const maxOpening = 0.65;
+    const opening = minOpening + (maxOpening - minOpening) * (degrees / 180);
 
-    gripperAngle =
-        degrees;
-
-    value5.textContent =
-        degrees + "°";
-
-
-    const maxOpening =
-        0.55;
-
-    const opening =
-        maxOpening *
-        (degrees / 180);
-
-
-    leftFinger.position.x =
-        -opening;
-
-    rightFinger.position.x =
-        opening;
-
+    leftFinger.position.x = -opening;
+    rightFinger.position.x = opening;
 }
 
-
-slider5.addEventListener(
-    "input",
-    function () {
-
-        const degrees =
-            Number(slider5.value);
-
-        updateGripper(degrees);
-
-    }
-);
-
-
+slider5.addEventListener("input", function () {
+    updateGripper(Number(slider5.value));
+});
 updateGripper(90);
 
-
 // ========================================
-// PHYSICS UPDATE
+// PHYSICS LOOP
 // ========================================
-
 function updatePhysics(deltaTime) {
+    robot.updateMatrixWorld(true);
 
-    // Get the gripper's position
-    // in world coordinates.
-
-    joint5.getWorldPosition(
-        gripperWorldPosition
-    );
-
-
-    // Get cube world position.
-
-    cube.getWorldPosition(
-        cubeWorldPosition
-    );
-
-
-    // ====================================
-    // IF CUBE IS CURRENTLY HELD
-    // ====================================
+    joint5.getWorldPosition(gripperWorldPosition);
+    cube.getWorldPosition(cubeWorldPosition);
 
     if (cubeHeld) {
-
-        // If the gripper opens,
-        // release the cube.
-
-        if (gripperAngle > 35) {
-
-            cubeHeld =
-                false;
-
-            cubeVelocityY =
-                0;
-
+        if (gripperAngle > 50) {
+            const currentWorldPos = cube.getWorldPosition(new THREE.Vector3());
+            scene.attach(cube);
+            cube.position.copy(currentWorldPos);
+            cubeHeld = false;
+            cubeVelocityY = 0;
         } else {
-
-            // Cube follows the gripper.
-
-            cube.position.copy(
-                gripperWorldPosition
-            );
-
-            // Move the cube slightly
-            // below the gripper center.
-
-            cube.position.y -=
-                0.35;
-
+            if (cube.parent !== joint5) {
+                joint5.attach(cube);
+                cube.position.set(0, 0.4, 0);
+            }
             return;
         }
     }
 
-
-    // ====================================
-    // GRAB CUBE
-    // ====================================
-
+    // Grab Check
     if (
-        gripperAngle <= 35 &&
-        cubeWorldPosition.distanceTo(
-            gripperWorldPosition
-        ) < grabDistance
+        !cubeHeld &&
+        gripperAngle <= 50 &&
+        cubeWorldPosition.distanceTo(gripperWorldPosition) < grabDistance
     ) {
-
-        cubeHeld =
-            true;
-
-        cubeVelocityY =
-            0;
-
-        cube.position.copy(
-            gripperWorldPosition
-        );
-
-        cube.position.y -=
-            0.35;
-
+        cubeHeld = true;
+        cubeVelocityY = 0;
+        joint5.attach(cube);
+        cube.position.set(0, 0.4, 0);
         return;
     }
-
-
-    // ====================================
-    // PHYSICS OFF
-    // ====================================
 
     if (!physicsEnabled) {
-
-        cubeVelocityY =
-            0;
-
+        cubeVelocityY = 0;
         return;
     }
 
+    cubeVelocityY += gravity * deltaTime;
+    cube.position.y += cubeVelocityY * deltaTime;
 
-    // ====================================
-    // GRAVITY
-    // ====================================
-
-    cubeVelocityY +=
-        gravity *
-        deltaTime;
-
-
-    cube.position.y +=
-        cubeVelocityY *
-        deltaTime;
-
-
-    // ====================================
-    // TABLE COLLISION
-    // ====================================
-
-    const tableHeight =
-        cubeHalfHeight;
-
-
-    if (
-        cube.position.y <
-        tableHeight
-    ) {
-
-        cube.position.y =
-            tableHeight;
-
-        cubeVelocityY =
-            0;
+    const tableHeight = cubeHalfHeight;
+    if (cube.position.y <= tableHeight) {
+        cube.position.y = tableHeight;
+        cubeVelocityY = 0;
+        
+        // Level the cube flat upon hitting the table
+        cube.rotation.x = 0;
+        cube.rotation.z = 0;
     }
-
 }
-
 
 // ========================================
 // ANIMATION LOOP
 // ========================================
-
-let previousTime =
-    performance.now();
-
+let previousTime = performance.now();
 
 function animate() {
+    requestAnimationFrame(animate);
 
-    requestAnimationFrame(
-        animate
-    );
+    const currentTime = performance.now();
+    let deltaTime = (currentTime - previousTime) / 1000;
+    previousTime = currentTime;
+    deltaTime = Math.min(deltaTime, 0.05);
 
-
-    const currentTime =
-        performance.now();
-
-
-    let deltaTime =
-        (currentTime - previousTime) /
-        1000;
-
-
-    previousTime =
-        currentTime;
-
-
-    // Prevent a huge physics jump
-    // if the browser pauses the tab.
-
-    deltaTime =
-        Math.min(
-            deltaTime,
-            0.05
-        );
-
-
-    updatePhysics(
-        deltaTime
-    );
-
-
-    renderer.render(
-        scene,
-        camera
-    );
-
+    updatePhysics(deltaTime);
+    renderer.render(scene, camera);
 }
 
-
 animate();
-
 
 // ========================================
 // WINDOW RESIZE
 // ========================================
-
-window.addEventListener(
-    "resize",
-    function () {
-
-        camera.aspect =
-            window.innerWidth /
-            window.innerHeight;
-
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(
-            window.innerWidth,
-            window.innerHeight
-        );
-
-    }
-);
-
+window.addEventListener("resize", function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
 </script>
 
 </body>
