@@ -74,7 +74,8 @@
     // SCENE
     // ========================================
 
-    const scene = new THREE.Scene();
+    const scene =
+        new THREE.Scene();
 
     scene.background =
         new THREE.Color(0x202020);
@@ -162,7 +163,6 @@
 
     scene.add(light);
 
-
     scene.add(
         new THREE.AmbientLight(
             0xffffff,
@@ -220,22 +220,53 @@
 
 
     // ========================================
+    // STATIC CONNECTOR
+    // ========================================
+
+    const connectorGeometry =
+        new THREE.BoxGeometry(
+            0.15,
+            0.3,
+            0.15
+        );
+
+    const connectorMaterial =
+        new THREE.MeshStandardMaterial({
+            color: 0x3498db
+        });
+
+    const connector =
+        new THREE.Mesh(
+            connectorGeometry,
+            connectorMaterial
+        );
+
+    // Base top is at Y = 0.5.
+    // Connector height is 0.3.
+    // Therefore its center is at Y = 0.65.
+
+    connector.position.y =
+        0.65;
+
+    joint1.add(connector);
+
+
+    // ========================================
     // JOINT 2
     // ========================================
 
     const joint2 =
         new THREE.Group();
 
-
     // Joint 2 belongs to Joint 1
 
     joint1.add(joint2);
 
 
-    // Put Joint 2 on top of the base
+    // Put Joint 2 on top of the connector
 
     joint2.position.y =
-        0.5;
+        0.8;
 
 
     // ========================================
@@ -260,15 +291,10 @@
             armMaterial
         );
 
-
-    // The arm is 2.5 units tall.
-    // Put its center 1.25 units above
-    // Joint 2 so its bottom touches
-    // the joint.
+    // Arm center is 1.25 units above Joint 2
 
     arm1.position.y =
         1.25;
-
 
     joint2.add(arm1);
 
@@ -347,8 +373,6 @@
         );
 
 
-    // Joint 1 starts at 90 degrees
-
     joint1.rotation.y =
         THREE.MathUtils.degToRad(
             90
@@ -366,7 +390,6 @@
 
             value.textContent =
                 degrees + "°";
-
 
             joint1.rotation.y =
                 THREE.MathUtils.degToRad(
@@ -392,13 +415,13 @@
         );
 
 
-    // Joint 2 starts at 90 degrees
-
     slider2.value = 90;
 
     value2.textContent =
         "90°";
 
+
+    // Joint 2 rotates around X-axis
 
     joint2.rotation.x =
         THREE.MathUtils.degToRad(
@@ -423,6 +446,7 @@
                 THREE.MathUtils.degToRad(
                     degrees - 90
                 );
+
 
             joint2.rotation.x =
                 rotation;
@@ -463,9 +487,7 @@
                 window.innerWidth /
                 window.innerHeight;
 
-
             camera.updateProjectionMatrix();
-
 
             renderer.setSize(
                 window.innerWidth,
