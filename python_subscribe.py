@@ -18,7 +18,7 @@ import paho.mqtt.client as mqtt
 
 BROKER = "broker.emqx.io"
 PORT = 1883
-RECEIVE_TOPIC = "transmitcontrolsignals/roboticarm/orange_bird"
+RECEIVE_TOPIC = "transmitcontrolsignals/roboticarm/ja"
 
 EXPECTED_BYTES = 20  # 5 x float32
 

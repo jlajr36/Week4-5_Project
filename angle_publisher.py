@@ -9,7 +9,7 @@ import paho.mqtt.client as mqtt
 
 BROKER = "broker.emqx.io"
 PORT = 1883
-SEND_TOPIC = "validatecontrolsignals/roboticarm/orange_bird"
+SEND_TOPIC = "validatecontrolsignals/roboticarm/ja"
 
 
 # Initial slider values

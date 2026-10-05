@@ -11,8 +11,8 @@ import paho.mqtt.client as mqtt
 BROKER = "broker.emqx.io"
 PORT = 1883
 
-VALIDATE_TOPIC = "validatecontrolsignals/roboticarm/orange_bird"
-TRANSMIT_TOPIC = "transmitcontrolsignals/roboticarm/orange_bird"
+VALIDATE_TOPIC = "validatecontrolsignals/roboticarm/ja"
+TRANSMIT_TOPIC = "transmitcontrolsignals/roboticarm/ja"
 
 
 # ============================================================
