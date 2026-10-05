@@ -2,31 +2,88 @@
 <html>
 <head>
     <title>Robot Digital Twin</title>
+
     <style>
         body {
             margin: 0;
             overflow: hidden;
+            background: #202020;
         }
+
         #controls {
             position: absolute;
             top: 20px;
             left: 20px;
             background: white;
-            padding: 12px;
+            padding: 15px;
             font-family: Arial, sans-serif;
             z-index: 10;
+            width: 230px;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
         }
+
         #controls input[type="range"] {
-            width: 180px;
+            width: 210px;
         }
+
         #physicsControl {
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid #ccc;
         }
-        #physicsStatus {
+
+        #mqttControl {
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #mqttStatus {
             font-weight: bold;
-            color: #2980b9;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        #mqttButton {
+            margin-top: 8px;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            background: #2980b9;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #mqttButton:hover {
+            background: #21618c;
+        }
+
+        #mqttButton.disconnect {
+            background: #c0392b;
+        }
+
+        #mqttButton.disconnect:hover {
+            background: #922b21;
+        }
+
+        .axis {
+            margin-bottom: 12px;
+        }
+
+        .axis-label {
+            font-weight: bold;
+        }
+
+        input[type="range"]:disabled {
+            opacity: 0.45;
+        }
+
+        #dataStatus {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
         }
     </style>
 </head>
@@ -34,30 +91,174 @@
 <body>
 
 <div id="controls">
+
+    <!-- MQTT CONTROL -->
+
+    <div id="mqttControl">
+
+        <strong>MQTT CONTROL</strong>
+
+        <div id="mqttStatus">
+            MQTT: Disconnected
+        </div>
+
+        <button id="mqttButton">
+            Connect MQTT
+        </button>
+
+        <div id="dataStatus">
+            Manual slider control
+        </div>
+
+    </div>
+
+
+    <!-- PHYSICS CONTROL -->
+
     <div id="physicsControl">
+
         <label>
             <input id="physicsToggle" type="checkbox" checked>
             Physics ON
         </label>
+
         <br>
-        <span id="physicsStatus">Gravity active</span>
+
+        <span id="physicsStatus">
+            Gravity active
+        </span>
+
     </div>
 
-    Base: <span id="value">90°</span><br>
-    <input id="slider" type="range" min="0" max="180" value="90"><br><br>
 
-    Shoulder: <span id="value2">110°</span><br>
-    <input id="slider2" type="range" min="0" max="180" value="110"><br><br>
+    <!-- BASE -->
 
-    Elbow: <span id="value3">110°</span><br>
-    <input id="slider3" type="range" min="0" max="180" value="110"><br><br>
+    <div class="axis">
 
-    Wrist: <span id="value4">90°</span><br>
-    <input id="slider4" type="range" min="0" max="180" value="90"><br><br>
+        <span class="axis-label">
+            Base:
+        </span>
 
-    Gripper: <span id="value5">90°</span><br>
-    <input id="slider5" type="range" min="0" max="180" value="90">
+        <span id="value">
+            90°
+        </span>
+
+        <br>
+
+        <input
+            id="slider"
+            type="range"
+            min="0"
+            max="180"
+            value="90"
+        >
+
+    </div>
+
+
+    <!-- SHOULDER -->
+
+    <div class="axis">
+
+        <span class="axis-label">
+            Shoulder:
+        </span>
+
+        <span id="value2">
+            110°
+        </span>
+
+        <br>
+
+        <input
+            id="slider2"
+            type="range"
+            min="0"
+            max="180"
+            value="110"
+        >
+
+    </div>
+
+
+    <!-- ELBOW -->
+
+    <div class="axis">
+
+        <span class="axis-label">
+            Elbow:
+        </span>
+
+        <span id="value3">
+            110°
+        </span>
+
+        <br>
+
+        <input
+            id="slider3"
+            type="range"
+            min="0"
+            max="180"
+            value="110"
+        >
+
+    </div>
+
+
+    <!-- WRIST -->
+
+    <div class="axis">
+
+        <span class="axis-label">
+            Wrist:
+        </span>
+
+        <span id="value4">
+            90°
+        </span>
+
+        <br>
+
+        <input
+            id="slider4"
+            type="range"
+            min="0"
+            max="180"
+            value="90"
+        >
+
+    </div>
+
+
+    <!-- GRIPPER -->
+
+    <div class="axis">
+
+        <span class="axis-label">
+            Gripper:
+        </span>
+
+        <span id="value5">
+            90°
+        </span>
+
+        <br>
+
+        <input
+            id="slider5"
+            type="range"
+            min="0"
+            max="180"
+            value="90"
+        >
+
+    </div>
+
 </div>
+
+
+<!-- THREE.JS IMPORT -->
 
 <script type="importmap">
 {
@@ -67,296 +268,1434 @@
 }
 </script>
 
+
+<!-- MQTT.JS -->
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+
 <script type="module">
+
 import * as THREE from "three";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
 
-// ========================================
-// SCENE & RENDERER SETUP
-// ========================================
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x202020);
+import {
+    OrbitControls
+} from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js";
 
-const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(5, 4, 7);
-camera.lookAt(0, 1, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+// ============================================================
+// MQTT CONFIGURATION
+// ============================================================
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 1, 0);
+const MQTT_URL =
+    "wss://broker.emqx.io:8084/mqtt";
+
+const MQTT_TOPIC =
+    "transmitcontrolsignals/roboticarm/orange_bird";
+
+let mqttClient = null;
+
+let mqttConnected = false;
+
+
+// ============================================================
+// MQTT UI
+// ============================================================
+
+const mqttButton =
+    document.getElementById("mqttButton");
+
+const mqttStatus =
+    document.getElementById("mqttStatus");
+
+const dataStatus =
+    document.getElementById("dataStatus");
+
+
+// ============================================================
+// SLIDERS
+// ============================================================
+
+const sliders = [
+    document.getElementById("slider"),
+    document.getElementById("slider2"),
+    document.getElementById("slider3"),
+    document.getElementById("slider4"),
+    document.getElementById("slider5")
+];
+
+
+const valueLabels = [
+    document.getElementById("value"),
+    document.getElementById("value2"),
+    document.getElementById("value3"),
+    document.getElementById("value4"),
+    document.getElementById("value5")
+];
+
+
+// ============================================================
+// THREE.JS SCENE
+// ============================================================
+
+const scene =
+    new THREE.Scene();
+
+scene.background =
+    new THREE.Color(0x202020);
+
+
+// ============================================================
+// CAMERA
+// ============================================================
+
+const camera =
+    new THREE.PerspectiveCamera(
+        50,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+    );
+
+camera.position.set(
+    5,
+    4,
+    7
+);
+
+camera.lookAt(
+    0,
+    1,
+    0
+);
+
+
+// ============================================================
+// RENDERER
+// ============================================================
+
+const renderer =
+    new THREE.WebGLRenderer({
+        antialias: true
+    });
+
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+
+document.body.appendChild(
+    renderer.domElement
+);
+
+
+// ============================================================
+// ORBIT CONTROLS
+// ============================================================
+
+const controls =
+    new OrbitControls(
+        camera,
+        renderer.domElement
+    );
+
+controls.target.set(
+    0,
+    1,
+    0
+);
+
 controls.update();
 
-// ========================================
-// LIGHTING
-// ========================================
-const light = new THREE.DirectionalLight(0xffffff, 3);
-light.position.set(5, 10, 5);
-scene.add(light);
-scene.add(new THREE.AmbientLight(0xffffff, 1));
 
-// ========================================
+// ============================================================
+// LIGHTING
+// ============================================================
+
+const light =
+    new THREE.DirectionalLight(
+        0xffffff,
+        3
+    );
+
+light.position.set(
+    5,
+    10,
+    5
+);
+
+scene.add(light);
+
+scene.add(
+    new THREE.AmbientLight(
+        0xffffff,
+        1
+    )
+);
+
+
+// ============================================================
 // ROBOT HIERARCHY
-// ========================================
-const robot = new THREE.Group();
+// ============================================================
+
+const robot =
+    new THREE.Group();
+
 scene.add(robot);
 
-const joint1 = new THREE.Group();
+
+// ============================================================
+// BASE / JOINT 1
+// ============================================================
+
+const joint1 =
+    new THREE.Group();
+
 robot.add(joint1);
 
-const baseGeometry = new THREE.BoxGeometry(2.5, 0.5, 2);
-const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x3498db });
-const base = new THREE.Mesh(baseGeometry, baseMaterial);
+
+const baseGeometry =
+    new THREE.BoxGeometry(
+        2.5,
+        0.5,
+        2
+    );
+
+const baseMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x3498db
+    });
+
+
+const base =
+    new THREE.Mesh(
+        baseGeometry,
+        baseMaterial
+    );
+
 base.position.y = 0.25;
+
 joint1.add(base);
 
-const connectorGeometry = new THREE.BoxGeometry(0.6, 1.2, 0.6);
-const connector = new THREE.Mesh(connectorGeometry, baseMaterial);
+
+// ============================================================
+// CONNECTOR
+// ============================================================
+
+const connectorGeometry =
+    new THREE.BoxGeometry(
+        0.6,
+        1.2,
+        0.6
+    );
+
+const connector =
+    new THREE.Mesh(
+        connectorGeometry,
+        baseMaterial
+    );
+
 connector.position.y = 1.1;
+
 joint1.add(connector);
 
-const joint2 = new THREE.Group();
+
+// ============================================================
+// SHOULDER / JOINT 2
+// ============================================================
+
+const joint2 =
+    new THREE.Group();
+
 joint1.add(joint2);
+
 joint2.position.y = 1.7;
 
-const armGeometry = new THREE.BoxGeometry(0.6, 2.5, 0.6);
-const arm1 = new THREE.Mesh(armGeometry, baseMaterial);
+
+const armGeometry =
+    new THREE.BoxGeometry(
+        0.6,
+        2.5,
+        0.6
+    );
+
+
+const arm1 =
+    new THREE.Mesh(
+        armGeometry,
+        baseMaterial
+    );
+
 arm1.position.y = 1.25;
+
 joint2.add(arm1);
 
-const joint3 = new THREE.Group();
+
+// ============================================================
+// ELBOW / JOINT 3
+// ============================================================
+
+const joint3 =
+    new THREE.Group();
+
 joint3.position.y = 2.5;
+
 joint2.add(joint3);
 
-const forearmGeometry = new THREE.BoxGeometry(0.6, 2.0, 0.6);
-const forearmMaterial = new THREE.MeshStandardMaterial({ color: 0x2980b9 });
-const forearm = new THREE.Mesh(forearmGeometry, forearmMaterial);
+
+const forearmGeometry =
+    new THREE.BoxGeometry(
+        0.6,
+        2.0,
+        0.6
+    );
+
+
+const forearmMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x2980b9
+    });
+
+
+const forearm =
+    new THREE.Mesh(
+        forearmGeometry,
+        forearmMaterial
+    );
+
 forearm.position.y = 1.0;
+
 joint3.add(forearm);
 
-const joint4 = new THREE.Group();
+
+// ============================================================
+// WRIST / JOINT 4
+// ============================================================
+
+const joint4 =
+    new THREE.Group();
+
 joint4.position.y = 2.0;
+
 joint3.add(joint4);
 
-const wristGeometry = new THREE.BoxGeometry(0.75, 0.4, 0.75);
-const wristMaterial = new THREE.MeshStandardMaterial({ color: 0x1f6fa8 });
-const wrist = new THREE.Mesh(wristGeometry, wristMaterial);
+
+const wristGeometry =
+    new THREE.BoxGeometry(
+        0.75,
+        0.4,
+        0.75
+    );
+
+
+const wristMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x1f6fa8
+    });
+
+
+const wrist =
+    new THREE.Mesh(
+        wristGeometry,
+        wristMaterial
+    );
+
 wrist.position.y = 0.2;
+
 joint4.add(wrist);
 
-const gripperBaseGeometry = new THREE.BoxGeometry(0.9, 0.25, 0.9);
-const gripperBaseMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 });
-const gripperBase = new THREE.Mesh(gripperBaseGeometry, gripperBaseMaterial);
+
+// ============================================================
+// GRIPPER BASE
+// ============================================================
+
+const gripperBaseGeometry =
+    new THREE.BoxGeometry(
+        0.9,
+        0.25,
+        0.9
+    );
+
+
+const gripperBaseMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x555555
+    });
+
+
+const gripperBase =
+    new THREE.Mesh(
+        gripperBaseGeometry,
+        gripperBaseMaterial
+    );
+
 gripperBase.position.y = 0.5;
+
 joint4.add(gripperBase);
 
-const joint5 = new THREE.Group();
+
+// ============================================================
+// GRIPPER / JOINT 5
+// ============================================================
+
+const joint5 =
+    new THREE.Group();
+
 joint5.position.y = 0.6;
+
 joint4.add(joint5);
 
-const fingerGeometry = new THREE.BoxGeometry(0.18, 0.8, 0.35);
-const fingerMaterial = new THREE.MeshStandardMaterial({ color: 0x777777 });
 
-const leftFinger = new THREE.Mesh(fingerGeometry, fingerMaterial);
-leftFinger.position.set(-0.4, 0.4, 0);
+const fingerGeometry =
+    new THREE.BoxGeometry(
+        0.18,
+        0.8,
+        0.35
+    );
+
+
+const fingerMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x777777
+    });
+
+
+const leftFinger =
+    new THREE.Mesh(
+        fingerGeometry,
+        fingerMaterial
+    );
+
+leftFinger.position.set(
+    -0.4,
+    0.4,
+    0
+);
+
 joint5.add(leftFinger);
 
-const rightFinger = new THREE.Mesh(fingerGeometry, fingerMaterial);
-rightFinger.position.set(0.4, 0.4, 0);
+
+const rightFinger =
+    new THREE.Mesh(
+        fingerGeometry,
+        fingerMaterial
+    );
+
+rightFinger.position.set(
+    0.4,
+    0.4,
+    0
+);
+
 joint5.add(rightFinger);
 
-// ========================================
-// ENVIRONMENT (CUBE & TABLE)
-// ========================================
-const cubeGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff5533 });
-const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-cube.position.set(4, 0.4, 0);
+
+// ============================================================
+// CUBE
+// ============================================================
+
+const cubeGeometry =
+    new THREE.BoxGeometry(
+        0.8,
+        0.8,
+        0.8
+    );
+
+
+const cubeMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0xff5533
+    });
+
+
+const cube =
+    new THREE.Mesh(
+        cubeGeometry,
+        cubeMaterial
+    );
+
+cube.position.set(
+    4,
+    0.4,
+    0
+);
+
 scene.add(cube);
 
-const tableGeometry = new THREE.PlaneGeometry(12, 12);
-const tableMaterial = new THREE.MeshStandardMaterial({ color: 0x777777, side: THREE.DoubleSide });
-const table = new THREE.Mesh(tableGeometry, tableMaterial);
-table.rotation.x = -Math.PI / 2;
+
+// ============================================================
+// TABLE
+// ============================================================
+
+const tableGeometry =
+    new THREE.PlaneGeometry(
+        12,
+        12
+    );
+
+
+const tableMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x777777,
+        side: THREE.DoubleSide
+    });
+
+
+const table =
+    new THREE.Mesh(
+        tableGeometry,
+        tableMaterial
+    );
+
+table.rotation.x =
+    -Math.PI / 2;
+
 scene.add(table);
 
-// ========================================
-// PHYSICS STATE
-// ========================================
+
+// ============================================================
+// PHYSICS
+// ============================================================
+
 let physicsEnabled = true;
+
 let cubeVelocityY = 0;
+
 let cubeHeld = false;
+
 const gravity = -9.8;
+
 const cubeHalfHeight = 0.4;
+
 const grabDistance = 0.6;
 
-const physicsToggle = document.getElementById("physicsToggle");
-const physicsStatus = document.getElementById("physicsStatus");
 
-physicsToggle.addEventListener("change", function () {
-    physicsEnabled = physicsToggle.checked;
-    if (physicsEnabled) {
-        physicsStatus.textContent = "Gravity active";
-        physicsStatus.style.color = "#2980b9";
-    } else {
-        physicsStatus.textContent = "Gravity disabled";
-        physicsStatus.style.color = "#777777";
-        cubeVelocityY = 0;
+const physicsToggle =
+    document.getElementById(
+        "physicsToggle"
+    );
+
+const physicsStatus =
+    document.getElementById(
+        "physicsStatus"
+    );
+
+
+physicsToggle.addEventListener(
+    "change",
+    function () {
+
+        physicsEnabled =
+            physicsToggle.checked;
+
+        if (physicsEnabled) {
+
+            physicsStatus.textContent =
+                "Gravity active";
+
+            physicsStatus.style.color =
+                "#2980b9";
+
+        } else {
+
+            physicsStatus.textContent =
+                "Gravity disabled";
+
+            physicsStatus.style.color =
+                "#777777";
+
+            cubeVelocityY = 0;
+        }
     }
-});
+);
 
-const gripperWorldPosition = new THREE.Vector3();
-const cubeWorldPosition = new THREE.Vector3();
 
-// ========================================
-// SLIDER CONTROLS & KINEMATICS
-// ========================================
-const slider = document.getElementById("slider");
-const value = document.getElementById("value");
-joint1.rotation.y = THREE.MathUtils.degToRad(90);
+const gripperWorldPosition =
+    new THREE.Vector3();
 
-slider.addEventListener("input", function () {
-    const degrees = Number(slider.value);
-    value.textContent = degrees + "°";
-    joint1.rotation.y = THREE.MathUtils.degToRad(degrees);
-});
+const cubeWorldPosition =
+    new THREE.Vector3();
 
-const slider2 = document.getElementById("slider2");
-const value2 = document.getElementById("value2");
-joint2.rotation.x = THREE.MathUtils.degToRad(110 - 90);
 
-slider2.addEventListener("input", function () {
-    const degrees = Number(slider2.value);
-    value2.textContent = degrees + "°";
-    joint2.rotation.x = THREE.MathUtils.degToRad(degrees - 90);
-});
+// ============================================================
+// GRIPPER ANGLE
+// ============================================================
 
-const slider3 = document.getElementById("slider3");
-const value3 = document.getElementById("value3");
-joint3.rotation.x = THREE.MathUtils.degToRad(110 - 90);
-
-slider3.addEventListener("input", function () {
-    const degrees = Number(slider3.value);
-    value3.textContent = degrees + "°";
-    joint3.rotation.x = THREE.MathUtils.degToRad(degrees - 90);
-});
-
-const slider4 = document.getElementById("slider4");
-const value4 = document.getElementById("value4");
-
-slider4.addEventListener("input", function () {
-    const degrees = Number(slider4.value);
-    value4.textContent = degrees + "°";
-    joint4.rotation.y = THREE.MathUtils.degToRad(degrees - 90);
-});
-
-const slider5 = document.getElementById("slider5");
-const value5 = document.getElementById("value5");
 let gripperAngle = 90;
 
-function updateGripper(degrees) {
-    gripperAngle = degrees;
-    value5.textContent = degrees + "°";
-    
-    const minOpening = 0.4;
-    const maxOpening = 0.65;
-    const opening = minOpening + (maxOpening - minOpening) * (degrees / 180);
 
-    leftFinger.position.x = -opening;
-    rightFinger.position.x = opening;
+function updateGripper(degrees) {
+
+    gripperAngle = degrees;
+
+    valueLabels[4].textContent =
+        degrees.toFixed(1) + "°";
+
+
+    const minOpening = 0.4;
+
+    const maxOpening = 0.65;
+
+
+    const opening =
+        minOpening +
+        (maxOpening - minOpening) *
+        (degrees / 180);
+
+
+    leftFinger.position.x =
+        -opening;
+
+    rightFinger.position.x =
+        opening;
 }
 
-slider5.addEventListener("input", function () {
-    updateGripper(Number(slider5.value));
-});
-updateGripper(90);
 
-// ========================================
-// PHYSICS LOOP
-// ========================================
+// ============================================================
+// APPLY ONE ANGLE
+// ============================================================
+
+function applyAngle(
+    axis,
+    degrees
+) {
+
+    degrees = Number(degrees);
+
+    if (!Number.isFinite(degrees)) {
+        return;
+    }
+
+
+    degrees =
+        Math.max(
+            0,
+            Math.min(
+                180,
+                degrees
+            )
+        );
+
+
+    sliders[axis].value =
+        degrees;
+
+
+    valueLabels[axis].textContent =
+        degrees.toFixed(1) + "°";
+
+
+    switch (axis) {
+
+        case 0:
+
+            joint1.rotation.y =
+                THREE.MathUtils.degToRad(
+                    degrees
+                );
+
+            break;
+
+
+        case 1:
+
+            joint2.rotation.x =
+                THREE.MathUtils.degToRad(
+                    degrees - 90
+                );
+
+            break;
+
+
+        case 2:
+
+            joint3.rotation.x =
+                THREE.MathUtils.degToRad(
+                    degrees - 90
+                );
+
+            break;
+
+
+        case 3:
+
+            joint4.rotation.y =
+                THREE.MathUtils.degToRad(
+                    degrees - 90
+                );
+
+            break;
+
+
+        case 4:
+
+            updateGripper(
+                degrees
+            );
+
+            break;
+    }
+}
+
+
+// ============================================================
+// APPLY ALL FIVE ANGLES
+// ============================================================
+
+function applyAngles(values) {
+
+    if (!values || values.length !== 5) {
+        return;
+    }
+
+
+    for (let i = 0; i < 5; i++) {
+
+        applyAngle(
+            i,
+            values[i]
+        );
+    }
+}
+
+
+// ============================================================
+// SLIDER EVENTS
+// ============================================================
+
+for (let i = 0; i < 5; i++) {
+
+    sliders[i].addEventListener(
+        "input",
+        function () {
+
+            /*
+             * Sliders are disabled while MQTT
+             * control is active.
+             */
+
+            if (mqttConnected) {
+                return;
+            }
+
+
+            applyAngle(
+                i,
+                Number(this.value)
+            );
+        }
+    );
+}
+
+
+// ============================================================
+// INITIAL ROBOT POSITION
+// ============================================================
+
+applyAngles([
+    90,
+    110,
+    110,
+    90,
+    90
+]);
+
+
+// ============================================================
+// MQTT STATUS
+// ============================================================
+
+function setMQTTStatus(
+    text,
+    color
+) {
+
+    mqttStatus.textContent =
+        text;
+
+    mqttStatus.style.color =
+        color;
+}
+
+
+// ============================================================
+// SLIDER MODE
+// ============================================================
+
+function setSliderMode(
+    mqttMode
+) {
+
+    for (const slider of sliders) {
+
+        slider.disabled =
+            mqttMode;
+    }
+}
+
+
+// ============================================================
+// CONNECT MQTT
+// ============================================================
+
+function connectMQTT() {
+
+    if (mqttConnected) {
+        return;
+    }
+
+
+    setMQTTStatus(
+        "MQTT: Connecting...",
+        "#f39c12"
+    );
+
+
+    dataStatus.textContent =
+        "Connecting to broker...";
+
+
+    mqttButton.disabled = true;
+
+
+    const clientId =
+        "robot_digital_twin_" +
+        Math.random()
+            .toString(16)
+            .substring(2, 10);
+
+
+    console.log(
+        "Connecting to:",
+        MQTT_URL
+    );
+
+
+    mqttClient =
+        mqtt.connect(
+            MQTT_URL,
+            {
+                clientId: clientId,
+
+                clean: true,
+
+                reconnectPeriod: 0,
+
+                connectTimeout: 10000
+            }
+        );
+
+
+    // ========================================================
+    // CONNECTED
+    // ========================================================
+
+    mqttClient.on(
+        "connect",
+        function () {
+
+            console.log(
+                "MQTT connected"
+            );
+
+
+            mqttConnected = true;
+
+
+            setMQTTStatus(
+                "MQTT: Connected",
+                "#27ae60"
+            );
+
+
+            dataStatus.textContent =
+                "Waiting for angle data...";
+
+
+            mqttButton.disabled =
+                false;
+
+
+            mqttButton.textContent =
+                "Disconnect MQTT";
+
+
+            mqttButton.classList.add(
+                "disconnect"
+            );
+
+
+            setSliderMode(
+                true
+            );
+
+
+            mqttClient.subscribe(
+                MQTT_TOPIC,
+                {
+                    qos: 0
+                },
+                function (error) {
+
+                    if (error) {
+
+                        console.error(
+                            "Subscribe error:",
+                            error
+                        );
+
+                        setMQTTStatus(
+                            "MQTT: Subscribe failed",
+                            "#c0392b"
+                        );
+
+                    } else {
+
+                        console.log(
+                            "Subscribed to:",
+                            MQTT_TOPIC
+                        );
+                    }
+                }
+            );
+        }
+    );
+
+
+    // ========================================================
+    // MESSAGE
+    // ========================================================
+
+    mqttClient.on(
+        "message",
+        function (
+            topic,
+            payload
+        ) {
+
+            if (
+                topic !== MQTT_TOPIC
+            ) {
+                return;
+            }
+
+
+            console.log(
+                "MQTT payload:",
+                payload
+            );
+
+
+            /*
+             * Expected payload:
+             *
+             * 5 × float32
+             *
+             * 5 × 4 bytes
+             *
+             * = 20 bytes
+             */
+
+            if (
+                payload.length !== 20
+            ) {
+
+                console.error(
+                    "Expected 20 bytes, received " +
+                    payload.length
+                );
+
+
+                setMQTTStatus(
+                    "MQTT: Invalid payload",
+                    "#c0392b"
+                );
+
+
+                return;
+            }
+
+
+            try {
+
+                const view =
+                    new DataView(
+                        payload.buffer,
+                        payload.byteOffset,
+                        payload.byteLength
+                    );
+
+
+                const values = [];
+
+
+                for (let i = 0; i < 5; i++) {
+
+                    /*
+                     * true = little endian
+                     *
+                     * This matches:
+                     *
+                     * struct.unpack("<5f", payload)
+                     */
+
+                    const angle =
+                        view.getFloat32(
+                            i * 4,
+                            true
+                        );
+
+
+                    if (
+                        !Number.isFinite(angle)
+                    ) {
+
+                        throw new Error(
+                            "Invalid angle value"
+                        );
+                    }
+
+
+                    const safeAngle =
+                        Math.max(
+                            0,
+                            Math.min(
+                                180,
+                                angle
+                            )
+                        );
+
+
+                    values.push(
+                        safeAngle
+                    );
+                }
+
+
+                console.log(
+                    "Angles:",
+                    values
+                );
+
+
+                /*
+                 * This updates:
+                 *
+                 * 1. Robot
+                 * 2. Sliders
+                 * 3. Numeric labels
+                 */
+
+                applyAngles(
+                    values
+                );
+
+
+                setMQTTStatus(
+                    "MQTT: Receiving data",
+                    "#27ae60"
+                );
+
+
+                dataStatus.textContent =
+                    "Live robotic arm data";
+
+
+            } catch (error) {
+
+                console.error(
+                    "MQTT decode error:",
+                    error
+                );
+
+
+                setMQTTStatus(
+                    "MQTT: Decode error",
+                    "#c0392b"
+                );
+            }
+        }
+    );
+
+
+    // ========================================================
+    // MQTT ERROR
+    // ========================================================
+
+    mqttClient.on(
+        "error",
+        function (error) {
+
+            console.error(
+                "MQTT error:",
+                error
+            );
+
+
+            setMQTTStatus(
+                "MQTT: Connection error",
+                "#c0392b"
+            );
+
+
+            dataStatus.textContent =
+                "Could not connect to MQTT broker";
+
+
+            mqttButton.disabled =
+                false;
+        }
+    );
+
+
+    // ========================================================
+    // MQTT CLOSED
+    // ========================================================
+
+    mqttClient.on(
+        "close",
+        function () {
+
+            console.log(
+                "MQTT disconnected"
+            );
+
+
+            mqttConnected = false;
+
+
+            setSliderMode(
+                false
+            );
+
+
+            mqttButton.disabled =
+                false;
+
+
+            mqttButton.textContent =
+                "Connect MQTT";
+
+
+            mqttButton.classList.remove(
+                "disconnect"
+            );
+
+
+            setMQTTStatus(
+                "MQTT: Disconnected",
+                "#777"
+            );
+
+
+            dataStatus.textContent =
+                "Manual slider control";
+        }
+    );
+}
+
+
+// ============================================================
+// DISCONNECT MQTT
+// ============================================================
+
+function disconnectMQTT() {
+
+    console.log(
+        "Disconnecting MQTT..."
+    );
+
+
+    mqttConnected = false;
+
+
+    setSliderMode(
+        false
+    );
+
+
+    if (mqttClient) {
+
+        mqttClient.end(
+            true
+        );
+
+        mqttClient = null;
+    }
+
+
+    mqttButton.disabled =
+        false;
+
+
+    mqttButton.textContent =
+        "Connect MQTT";
+
+
+    mqttButton.classList.remove(
+        "disconnect"
+    );
+
+
+    setMQTTStatus(
+        "MQTT: Disconnected",
+        "#777"
+    );
+
+
+    dataStatus.textContent =
+        "Manual slider control";
+}
+
+
+// ============================================================
+// MQTT BUTTON
+// ============================================================
+
+mqttButton.addEventListener(
+    "click",
+    function () {
+
+        if (mqttConnected) {
+
+            disconnectMQTT();
+
+        } else {
+
+            connectMQTT();
+        }
+    }
+);
+
+
+// ============================================================
+// PHYSICS UPDATE
+// ============================================================
+
 function updatePhysics(deltaTime) {
-    robot.updateMatrixWorld(true);
 
-    joint5.getWorldPosition(gripperWorldPosition);
-    cube.getWorldPosition(cubeWorldPosition);
+    robot.updateMatrixWorld(
+        true
+    );
+
+
+    joint5.getWorldPosition(
+        gripperWorldPosition
+    );
+
+
+    cube.getWorldPosition(
+        cubeWorldPosition
+    );
+
+
+    // ========================================================
+    // CUBE HELD
+    // ========================================================
 
     if (cubeHeld) {
+
         if (gripperAngle > 50) {
-            const currentWorldPos = cube.getWorldPosition(new THREE.Vector3());
-            scene.attach(cube);
-            cube.position.copy(currentWorldPos);
+
+            const currentWorldPos =
+                cube.getWorldPosition(
+                    new THREE.Vector3()
+                );
+
+
+            scene.attach(
+                cube
+            );
+
+
+            cube.position.copy(
+                currentWorldPos
+            );
+
+
             cubeHeld = false;
+
             cubeVelocityY = 0;
+
         } else {
-            if (cube.parent !== joint5) {
-                joint5.attach(cube);
-                cube.position.set(0, 0.4, 0);
+
+            if (
+                cube.parent !== joint5
+            ) {
+
+                joint5.attach(
+                    cube
+                );
+
+
+                cube.position.set(
+                    0,
+                    0.4,
+                    0
+                );
             }
+
+
             return;
         }
     }
 
-    // Grab Check
+
+    // ========================================================
+    // GRAB CHECK
+    // ========================================================
+
     if (
         !cubeHeld &&
         gripperAngle <= 50 &&
-        cubeWorldPosition.distanceTo(gripperWorldPosition) < grabDistance
+        cubeWorldPosition.distanceTo(
+            gripperWorldPosition
+        ) < grabDistance
     ) {
+
         cubeHeld = true;
+
         cubeVelocityY = 0;
-        joint5.attach(cube);
-        cube.position.set(0, 0.4, 0);
+
+
+        joint5.attach(
+            cube
+        );
+
+
+        cube.position.set(
+            0,
+            0.4,
+            0
+        );
+
+
         return;
     }
+
+
+    // ========================================================
+    // PHYSICS OFF
+    // ========================================================
 
     if (!physicsEnabled) {
+
         cubeVelocityY = 0;
+
         return;
     }
 
-    cubeVelocityY += gravity * deltaTime;
-    cube.position.y += cubeVelocityY * deltaTime;
 
-    const tableHeight = cubeHalfHeight;
-    if (cube.position.y <= tableHeight) {
-        cube.position.y = tableHeight;
+    // ========================================================
+    // GRAVITY
+    // ========================================================
+
+    cubeVelocityY +=
+        gravity *
+        deltaTime;
+
+
+    cube.position.y +=
+        cubeVelocityY *
+        deltaTime;
+
+
+    const tableHeight =
+        cubeHalfHeight;
+
+
+    if (
+        cube.position.y <=
+        tableHeight
+    ) {
+
+        cube.position.y =
+            tableHeight;
+
         cubeVelocityY = 0;
-        
-        // Level the cube flat upon hitting the table
+
         cube.rotation.x = 0;
+
         cube.rotation.z = 0;
     }
 }
 
-// ========================================
+
+// ============================================================
 // ANIMATION LOOP
-// ========================================
-let previousTime = performance.now();
+// ============================================================
+
+let previousTime =
+    performance.now();
+
 
 function animate() {
-    requestAnimationFrame(animate);
 
-    const currentTime = performance.now();
-    let deltaTime = (currentTime - previousTime) / 1000;
-    previousTime = currentTime;
-    deltaTime = Math.min(deltaTime, 0.05);
+    requestAnimationFrame(
+        animate
+    );
 
-    updatePhysics(deltaTime);
-    renderer.render(scene, camera);
+
+    const currentTime =
+        performance.now();
+
+
+    let deltaTime =
+        (
+            currentTime -
+            previousTime
+        ) / 1000;
+
+
+    previousTime =
+        currentTime;
+
+
+    deltaTime =
+        Math.min(
+            deltaTime,
+            0.05
+        );
+
+
+    updatePhysics(
+        deltaTime
+    );
+
+
+    renderer.render(
+        scene,
+        camera
+    );
 }
+
 
 animate();
 
-// ========================================
+
+// ============================================================
 // WINDOW RESIZE
-// ========================================
-window.addEventListener("resize", function () {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
+// ============================================================
+
+window.addEventListener(
+    "resize",
+    function () {
+
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
+
+
+        camera.updateProjectionMatrix();
+
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+    }
+);
+
 </script>
 
 </body>
