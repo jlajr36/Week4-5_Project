@@ -1,0 +1,46 @@
+Received: b'\x00\x00\x00\x00ff\xdcB\x00\x00\x00\x00\x00\x00\xb4B\x00\x00\xb4B'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.19999694824219, 0.0, 90.0, 90.0)
+Received: b"\x00\x00\x00\x00ff\xdcB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.19999694824219, 0.0, 90.0, 167.10000610351562)
+Received: b"\xcd\xccHBff\xdcB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (50.20000076293945, 110.19999694824219, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00ff\xdcB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.19999694824219, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00ff\xdcB\x00\x00\xf0A\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.19999694824219, 30.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00ff\xdcB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.19999694824219, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x0033\x84B\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 66.0999984741211, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00ff\xdcB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.19999694824219, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00\x9a\x99MB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 51.400001525878906, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00\x9a\x99\xddB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.80000305175781, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00\x9a\x19\x11C\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 145.10000610351562, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00\x9a\x99\xddB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.80000305175781, 0.0, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00\x9a\x99\xddBff0B\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.80000305175781, 44.099998474121094, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00\xcd\xcc\x17Cff0B\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 151.8000030517578, 44.099998474121094, 90.0, 167.10000610351562)
+Received: b"\x00\x00\x00\x00ff\xdcB\x00\x00\x00\x00\x00\x00\xb4B\x9a\x19'C"
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.19999694824219, 0.0, 90.0, 167.10000610351562)
+Received: b'\x00\x00\xb4B\x00\x00\xb4B\x00\x00\xb4B\x00\x00\xb4B\x00\x00\xb4B'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (90.0, 90.0, 90.0, 90.0, 90.0)
+Received: b'\x00\x00\x00\x00\x9a\x99\xddB\x00\x00\x00\x00\x00\x00\xb4B\x00\x00\xb4B'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.80000305175781, 0.0, 90.0, 90.0)
+Received: b'\x00\x00\x00\x00\x9a\x99\xddB\x00\x00\x00\x00\x00\x00\xb4B\x00\x80&C'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.80000305175781, 0.0, 90.0, 166.5)
+Received: b'\xcd\xccHB\x9a\x99\xddB\x00\x00\x00\x00\x00\x00\xb4B\x00\x80&C'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (50.20000076293945, 110.80000305175781, 0.0, 90.0, 166.5)
+Received: b'\x00\x00\x00\x00\x9a\x99\xddB\x00\x00\x00\x00\x00\x00\xb4B\x00\x80&C'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.80000305175781, 0.0, 90.0, 166.5)
+Received: b'\x00\x00\x00\x00\xcd\xcc\x17C\xcd\xcc2B\x00\x00\xb4B\x00\x80&C'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 151.8000030517578, 44.70000076293945, 90.0, 166.5)
+Received: b'\x00\x00\x00\x00ff\xdcB\x00\x00\x00\x00\x00\x00\xb4B\x00\x80&C'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (0.0, 110.19999694824219, 0.0, 90.0, 166.5)
+Received: b'\x00\x00\xb4B\x00\x00\xb4B\x00\x00\xb4B\x00\x00\xb4B\x00\x00\xb4B'
+MQTT transmitcontrolsignals/roboticarm/ja →  Arduino: (90.0, 90.0, 90.0, 90.0, 90.0)
