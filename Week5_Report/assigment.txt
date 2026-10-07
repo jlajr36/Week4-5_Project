@@ -1,0 +1,27 @@
+Please carefully review this week's project description Week5 Project4.2.pdfDownload Week5 Project4.2.pdf provided. Section 7 covers this week's work.
+
+This week is Phase 2 of the project. In Phase 1, the Python code acted as both the sender and the receiver of control signals. In Phase 2, those roles are taken by real systems. The MediaPipe hand-tracking application recognizes five hand gestures and publishes them as joint angles. The SysML model (the system of interest, SoI) validates those angles and forwards them. The physical five-joint robotic arm receives the validated signals and moves. The MQTT logic in your Week 4 activity diagram stays the almost same; only the external sender and receiver change.
+
+Three tasks to complete:
+
+Update your activity diagram from Week 4.
+Replace the Google-Colab opaque action with "Open User-Gesture Interface using GitHub," which launches the MediaPipe web page along with GitHub link/url.
+Change your validation so that all five angles must fall between 0° and 180°.
+Ensure that the claw angle does not exceed 168° to prevent the motor from overheating.
+Use your own topic names on the MediaPipe page and in the SysML model (.../roboticarm/<name>) so other students' messages don't reach your model.
+Connect MediaPipe, the SysML model, and the robotic arm into one control system.
+Connect with us to remotely operate the robotic arm located in the university lab. Show that your hand gestures value reach the robotic-arm through the SysML model and that the arm moves each joint in real time.
+Operate the robotic arm remotely to complete one task from Section 7.2. The four options are:
+Slide the object: Position O → A → O → B → O.
+Lift the object and put it into the cup.
+Flip the object over.
+Stack the two objects at Position A.
+Plan your sequence of gestures and joint angles before you start. Keep the claw angle between 166° - 168° to hold objects.
+
+Submission:
+
+Upload a file describing your updated design and show that your model accomplishes tasks 1–3 above. No more than 2 pages. Include:
+
+the updated activity diagram
+upload the working model to TWC.
+the task you chose, the gesture and joint-angle sequence you used, and the result.
