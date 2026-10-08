@@ -40,9 +40,9 @@ The integrated system was demonstrated using **Task 1: Slide the Object**. The s
 | **2** | Approach Object (Pos O) | `[0.0, 110.0, 0.0, 90.0, 90.0]` | Move the arm to the object |
 | **3** | Grip Object | `[0.0, 110.0, 0.0, 90.0, 166.0]` | Close the claw to grip the object |
 | **4** | Slide to Pos A | `[50.0, 110.0, 0.0, 90.0, 166.0]` | Move the object to Position A |
-| **5** | Slide Back to Pos O | `[0.0, 110.0, 90.0, 90.0, 166.0]` | Return the object to Position O |
+| **5** | Slide Back to Pos O | `[0.0, 110.0, 0.0, 90.0, 166.0]` | Return the object to Position O |
 | **6** | Slide Forward to Pos B | `[0.0, 151.0, 44.0, 90.0, 166.0]` | Move the object to Position B |
-| **7** | Slide Back to Pos O | `[0.0, 110.0, 90.0, 90.0, 166.0]` | Return the object to Position O |
+| **7** | Slide Back to Pos O | `[0.0, 110.0, 0.0, 90.0, 166.0]` | Return the object to Position O |
 | **8** | Return Home & Release | `[90.0, 90.0, 90.0, 90.0, 90.0]` | Return to the home position and release the object |
 
 The claw angle used while holding the object was **166°**, below the specified **168°** maximum.
