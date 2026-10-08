@@ -3,7 +3,7 @@ start at home:      90, 90,  90, 90,  90
 close to block (O): 0,  110,  0, 90,  90
 block gripped:      0,  110,  0, 90, 166
 slide (A):          50, 110,  0, 90, 166
-slide back(O):      0,  110, 90, 90, 166
+slide back(O):      0,  110, 0, 90, 166
 slide forward (B):  0,  151, 44, 90, 166
-slide back (O):     0,  110, 90, 90, 166
+slide back (O):     0,  110, 0, 90, 166
 home and release:   90, 90,  90, 90,  90
