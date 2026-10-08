@@ -28,14 +28,14 @@ To demonstrate remote physical manipulation (Milestone 3), the arm executed **Ta
 
 | Step | Motion Phase | Joint Angles `[Base, Shoulder, Elbow, Wrist, Claw]` | Operational Description |
 | :---: | :--- | :---: | :--- |
-| **1** | Start at Home | `[122.0, 90.0, 90.0, 90.0, 10.0]` | Baseline neutral position |
-| **2** | Approach Object (Pos O) | `[122.0, 100.0, 150.0, 90.0, 10.0]` | Lower arm over object at Pos O |
-| **3** | Grip Block | `[122.0, 100.0, 150.0, 90.0, 166.0]` | Close claw at **166°** ($\le 168^\circ$ limit) |
-| **4** | Slide to Pos A | `[152.0, 100.0, 150.0, 90.0, 166.0]` | Rotate base to Position A |
-| **5** | Slide back to Pos O | `[122.0, 100.0, 150.0, 90.0, 166.0]` | Return object to origin Position O |
-| **6** | Slide forward to Pos B | `[92.0, 100.0, 150.0, 90.0, 166.0]` | Rotate base to Position B |
-| **7** | Slide back to Pos O | `[122.0, 100.0, 150.0, 90.0, 166.0]` | Return object to Position O |
-| **8** | Return Home & Release | `[122.0, 90.0, 90.0, 90.0, 10.0]` | Open claw to release block and park |
+| **1** | Start at Home | `[90.0, 90.0, 90.0, 90.0, 90.0]` | Baseline neutral position |
+| **2** | Approach Object (Pos O) | `[0.0, 110.0, 0.0, 90.0, 90.0]` | Lower arm over object at Pos O |
+| **3** | Grip Block | `[0.0, 110.0, 0.0, 90.0, 166.0]` | Close claw at **166°** ($\le 168^\circ$ limit) |
+| **4** | Slide to Pos A | `[50.0, 110.0, 0.0, 90.0, 166.0]` | Rotate base to Position A |
+| **5** | Slide back to Pos O | `[0.0, 110.0, 90.0, 90.0, 166.0]` | Return object to origin Position O |
+| **6** | Slide forward to Pos B | `[0.0, 151.0, 44.0, 90.0, 166.0]` | Move Should and Elbow Forward |
+| **7** | Slide back to Pos O | `[0.0, 110.0, 90.0, 90.0, 166.0]` | Return object to Position O |
+| **8** | Return Home & Release | `[90.0, 90.0, 90.0, 90.0, 90.0]` | Open claw to release block and park |
 
 ---
 
